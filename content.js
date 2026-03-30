@@ -441,17 +441,12 @@
         bottom: 20px;
         z-index: 2147483646;
         width: 294px;
-        border-radius: 30px;
-        background:
-          radial-gradient(circle at 12% 0%, rgba(145, 170, 255, 0.22), transparent 34%),
-          linear-gradient(180deg, rgba(17, 22, 39, 0.82) 0%, rgba(10, 14, 26, 0.82) 100%);
+        border-radius: 26px;
+        background: rgba(14, 17, 28, 0.96);
         color: #f6f8ff;
-        box-shadow:
-          0 24px 60px rgba(7, 10, 18, 0.36),
-          inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(170, 194, 255, 0.18);
-        backdrop-filter: blur(22px) saturate(1.18);
-        -webkit-backdrop-filter: blur(22px) saturate(1.18);
+        box-shadow: 0 24px 60px rgba(7, 10, 18, 0.36);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(16px);
         font-family: "Segoe UI", sans-serif;
         overflow: hidden;
         user-select: none;
@@ -498,7 +493,6 @@
         padding: 6px 11px;
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.07);
-        border: 1px solid rgba(255,255,255,0.06);
         color: #b8c7ff;
         font-size: 11px;
         font-weight: 700;
@@ -507,7 +501,7 @@
       }
 
       #${FLOATING_PANEL_ID} .vtu-chip--ghost {
-        background: rgba(255, 255, 255, 0.045);
+        background: rgba(255, 255, 255, 0.04);
         color: rgba(214, 224, 255, 0.64);
       }
 
@@ -532,7 +526,6 @@
         height: 34px;
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255,255,255,0.05);
         color: #f6f8ff;
         cursor: pointer;
       }
@@ -671,10 +664,9 @@
 
       #${FLOATING_PANEL_ID} .vtu-card {
         padding: 10px 11px;
-        border-radius: 18px;
+        border-radius: 16px;
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(255, 255, 255, 0.06);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
       }
 
       #${FLOATING_PANEL_ID} .vtu-card-label {
@@ -716,42 +708,30 @@
       #${FLOATING_PANEL_ID} .vtu-secondary {
         border: 0;
         cursor: pointer;
-        border-radius: 18px;
+        border-radius: 16px;
         padding: 12px 14px;
         font: inherit;
         font-weight: 700;
-        transition: transform 140ms ease, background 160ms ease, box-shadow 160ms ease;
       }
 
       #${FLOATING_PANEL_ID} .vtu-primary {
-        background: linear-gradient(135deg, rgba(111, 134, 255, 0.95) 0%, rgba(121, 103, 255, 0.92) 100%);
+        background: linear-gradient(135deg, #4b7bff 0%, #5a68ff 100%);
         color: #ffffff;
         grid-column: 1 / -1;
-        box-shadow:
-          0 12px 28px rgba(79, 124, 255, 0.24),
-          inset 0 1px 0 rgba(255,255,255,0.16);
       }
 
       #${FLOATING_PANEL_ID} .vtu-primary[data-mode="stop"] {
-        background: linear-gradient(135deg, rgba(255, 125, 87, 0.92) 0%, rgba(255, 95, 109, 0.9) 100%);
+        background: linear-gradient(135deg, #ff774d 0%, #ff5f6d 100%);
       }
 
       #${FLOATING_PANEL_ID} .vtu-secondary {
         background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255,255,255,0.05);
         color: #f6f8ff;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
       }
 
       #${FLOATING_PANEL_ID} .vtu-secondary[data-tone="danger"] {
         color: #ffd9d2;
         background: rgba(255, 114, 91, 0.12);
-      }
-
-      #${FLOATING_PANEL_ID} .vtu-primary:hover,
-      #${FLOATING_PANEL_ID} .vtu-secondary:hover,
-      #${FLOATING_PANEL_ID} .vtu-icon-btn:hover {
-        transform: translateY(-1px);
       }
 
       #${FLOATING_PANEL_ID}.is-collapsed .vtu-shell {
