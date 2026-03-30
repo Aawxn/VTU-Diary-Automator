@@ -13,6 +13,7 @@
   const resetBtn = document.getElementById("resetBtn");
   const overwriteBtn = document.getElementById("overwriteBtn");
   const importDrawer = document.getElementById("importDrawer");
+  const importFeedback = document.getElementById("importFeedback");
   const jsonInput = document.getElementById("jsonInput");
   const fileInput = document.getElementById("fileInput");
   const clearImportBtn = document.getElementById("clearImportBtn");
@@ -315,6 +316,21 @@
     const running = isActuallyRunning(state);
     const currentState = status.state || (running ? "running" : "idle");
     const panelLabel = state.panelVisible ? "Hide Panel" : "Show Panel";
+    const feedbackMessage = importValidationState.error
+      ? importValidationState.error
+      : (importValidationState.valid && importDrawer.classList.contains("open")
+          ? `Validated ${importValidationState.entries.length} entr${importValidationState.entries.length === 1 ? "y" : "ies"} and set imported JSON as the active source.`
+          : "");
+    const hintMessage = transientHint || (
+      importDrawer.classList.contains("open")
+        ? importValidationState.error ||
+          (importValidationState.valid
+            ? `Looks good: ${importValidationState.entries.length} entries ready to use.`
+            : "Paste or upload a JSON array. Validation runs automatically.")
+        : (state.importedEntries.length
+            ? `Imported JSON active: ${state.importedEntries.length} entries`
+            : "Using built-in VTU skill validation.")
+    );
 
     statusBadge.dataset.state = currentState;
     statusBadge.textContent = toTitleCase(currentState);
@@ -329,16 +345,16 @@
     panelBtn.textContent = panelLabel;
     importToggleBtn.textContent = importDrawer.classList.contains("open") ? "Hide Data Input" : "Data Input";
     overwriteBtn.textContent = `Overwrite Existing: ${state.overwriteExisting ? "On" : "Off"}`;
-    hintText.textContent = transientHint || (
-      importDrawer.classList.contains("open")
-        ? importValidationState.error ||
-          (importValidationState.valid
-            ? `Looks good: ${importValidationState.entries.length} entries ready to use.`
-            : "Paste or upload a JSON array. Validation runs automatically.")
-        : (state.importedEntries.length
-            ? `Imported JSON active: ${state.importedEntries.length} entries`
-            : "Using built-in VTU skill validation.")
-    );
+    hintText.textContent = hintMessage;
+    hintText.dataset.state = importValidationState.error
+      ? "error"
+      : (importValidationState.valid ? "success" : "");
+    importFeedback.hidden = !feedbackMessage;
+    importFeedback.textContent = feedbackMessage;
+    importFeedback.dataset.state = importValidationState.error ? "error" : "success";
+    jsonInput.dataset.state = importValidationState.error
+      ? "error"
+      : (importValidationState.valid ? "valid" : "");
     if (!jsonInput.value && state.importedEntries.length) {
       jsonInput.value = JSON.stringify(state.importedEntries, null, 2);
       importValidationState = {
