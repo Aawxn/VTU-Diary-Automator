@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "VTU Internship Diary Automator",
+  "version": "1.1.0",
+  "description": "Automates filling the VTU Internship Diary portal from data.json.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "notifications"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://vtu.internyet.in/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://vtu.internyet.in/*"
+      ],
+      "js": [
+        "utils.js",
+        "storage.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "data.json"
+      ],
+      "matches": [
+        "https://vtu.internyet.in/*"
+      ]
+    }
+  ]
+}

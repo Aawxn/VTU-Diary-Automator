@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VTU Automator</title>
+    <style>
+      :root {
+        --panel: rgba(13, 18, 34, 0.96);
+        --panel-soft: rgba(255, 255, 255, 0.04);
+        --line: rgba(132, 156, 219, 0.16);
+        --text: #f5f7ff;
+        --muted: #9aa6c5;
+        --blue: #4f7cff;
+        --blue-2: #66b5ff;
+        --green: #73d7a7;
+        --red: #ff8b76;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        width: 274px;
+        background:
+          radial-gradient(circle at top left, rgba(79, 124, 255, 0.2), transparent 34%),
+          linear-gradient(180deg, #0c1223 0%, #090d19 100%);
+        color: var(--text);
+        font: 13px/1.45 "Segoe UI", sans-serif;
+      }
+
+      body { padding: 10px; }
+
+      .panel {
+        border-radius: 26px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        box-shadow: 0 24px 60px rgba(3, 8, 20, 0.42);
+        padding: 12px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.06);
+        color: #b9caff;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--blue-2);
+      }
+
+      h1 {
+        margin: 10px 0 4px;
+        font-size: 17px;
+        line-height: 1;
+      }
+
+      .sub { margin: 0; color: var(--muted); font-size: 11px; }
+
+      .status-shell {
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 20px;
+        background: var(--panel-soft);
+        border: 1px solid rgba(152, 172, 227, 0.12);
+      }
+
+      .status-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .status-label {
+        font-size: 11px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .date {
+        margin-top: 7px;
+        font-size: 16px;
+        line-height: 1;
+        font-weight: 700;
+      }
+
+      .badge {
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        background: rgba(255,255,255,0.08);
+        color: #dce5ff;
+      }
+
+      .badge[data-state="running"] { color: #a8c9ff; background: rgba(79,124,255,0.14); }
+      .badge[data-state="completed"] { color: var(--green); background: rgba(115,215,167,0.12); }
+      .badge[data-state="error"] { color: var(--red); background: rgba(255,139,118,0.12); }
+
+      .message { margin-top: 8px; min-height: 34px; color: var(--muted); font-size: 12px; }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .meta-card {
+        padding: 10px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.05);
+      }
+
+      .meta-card span { display: block; font-size: 11px; color: var(--muted); }
+      .meta-card strong { display: block; margin-top: 4px; font-size: 15px; }
+
+      .bar {
+        margin-top: 12px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.08);
+        overflow: hidden;
+      }
+
+      .bar > span {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--blue), var(--blue-2));
+      }
+
+      .hint { margin-top: 10px; min-height: 18px; color: var(--muted); font-size: 12px; }
+
+      .actions { display: grid; gap: 8px; margin-top: 12px; }
+
+      .split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+      button, textarea, input[type="file"] {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+        border-radius: 16px;
+        padding: 12px 13px;
+        font-weight: 700;
+      }
+
+      .primary { color: white; background: linear-gradient(135deg, var(--blue), #5f6cff); }
+      .primary[data-mode="stop"] { background: linear-gradient(135deg, #ff7d57, #ff5c71); }
+      .secondary { color: var(--text); background: rgba(255,255,255,0.07); }
+
+      .drawer {
+        display: none;
+        margin-top: 8px;
+        padding: 12px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.05);
+      }
+
+      .drawer.open { display: block; }
+
+      textarea {
+        width: 100%;
+        min-height: 120px;
+        resize: vertical;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 18px;
+        background: rgba(7, 11, 22, 0.8);
+        color: var(--text);
+        padding: 12px;
+        outline: none;
+      }
+
+      .drawer-copy {
+        margin: 0 0 10px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .drawer-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .drawer-stack {
+        display: grid;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .file-input {
+        width: 100%;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <div class="eyebrow">VTU Automator</div>
+      <h1>Diary Flow</h1>
+      <p class="sub">Validate, run, and optionally paste GPT JSON without touching the page mid-run.</p>
+
+      <div class="status-shell">
+        <div class="status-top">
+          <div>
+            <div class="status-label">Current run</div>
+            <div class="date" id="dateText">No date yet</div>
+          </div>
+          <div class="badge" id="statusBadge" data-state="idle">Idle</div>
+        </div>
+
+        <div class="message" id="statusText">Waiting for Start.</div>
+
+        <div class="meta-grid">
+          <div class="meta-card">
+            <span>Progress</span>
+            <strong id="indexText">0 / 0</strong>
+          </div>
+          <div class="meta-card">
+            <span>Phase</span>
+            <strong id="phaseText">Idle</strong>
+          </div>
+        </div>
+
+        <div class="bar"><span id="statusBar"></span></div>
+        <div class="hint" id="hintText">Using built-in VTU skill validation.</div>
+      </div>
+
+      <div class="actions">
+        <div class="split">
+          <button class="secondary" id="validateBtn" type="button">Validate</button>
+          <button class="secondary" id="importToggleBtn" type="button">Data Input</button>
+        </div>
+        <button class="primary" id="toggleBtn" type="button" data-mode="start">Start Automation</button>
+        <div class="split">
+          <button class="secondary" id="panelBtn" type="button">Pinned Panel</button>
+          <button class="secondary" id="resetBtn" type="button">Reset</button>
+        </div>
+      </div>
+
+      <div class="drawer" id="importDrawer">
+        <p class="drawer-copy">Paste a JSON array or upload a `.json` / `.txt` file. This does not overwrite `data.json`; it stores imported entries inside the extension until you switch back.</p>
+        <textarea id="jsonInput" placeholder='[{"date":"2026-01-29","workSummary":"...","learningOutcomes":"...","skills":["Machine learning"]}]'></textarea>
+        <input class="file-input" id="fileInput" type="file" accept=".json,.txt,application/json,text/plain">
+        <div class="drawer-stack">
+          <button class="secondary" id="clearImportBtn" type="button">Use data.json</button>
+          <button class="secondary" id="overwriteBtn" type="button">Overwrite Existing: Off</button>
+        </div>
+      </div>
+    </div>
+    <script src="skills.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
