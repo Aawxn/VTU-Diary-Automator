@@ -14,6 +14,7 @@
     throwIfAutomationCancelled,
     waitForCondition,
     waitForElement,
+    waitForVisibleDocument,
     waitForUrlChange
   } = globalThis.VTUUtils;
 
@@ -212,6 +213,31 @@
       return automationState.stopRequested;
     }
   };
+
+  document.addEventListener("visibilitychange", () => {
+    if (automationState.stopRequested) {
+      return;
+    }
+
+    if (document.hidden) {
+      updateAutomationStatus({
+        state: "running",
+        phase: "paused_hidden",
+        message: "VTU tab is hidden. Automation will resume when the tab is active again."
+      }).catch(() => {});
+      return;
+    }
+
+    if (!automationState.totalEntries) {
+      return;
+    }
+
+    updateAutomationStatus({
+      state: "running",
+      phase: "resuming",
+      message: "VTU tab is active again. Resuming automation."
+    }).catch(() => {});
+  });
 
   async function updateAutomationStatus(details = {}) {
     const status = {
@@ -830,6 +856,8 @@
   }
 
   function ensureFloatingPanelLegacy() {
+    return ensureFloatingPanel();
+
     let panel = document.getElementById(FLOATING_PANEL_ID);
     if (panel) {
       if (panel.dataset.version === FLOATING_PANEL_VERSION) {

@@ -31,7 +31,47 @@
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
+  async function waitForVisibleDocument(timeout = 120000) {
+    if (!document.hidden) {
+      return;
+    }
+
+    log("VTU tab is hidden. Pausing automation until the tab is visible again.");
+
+    await new Promise((resolve, reject) => {
+      let timer = null;
+
+      const cleanup = () => {
+        if (timer) {
+          clearTimeout(timer);
+        }
+        document.removeEventListener("visibilitychange", handleVisibility);
+      };
+
+      const handleVisibility = () => {
+        if (isAutomationCancelled()) {
+          cleanup();
+          reject(new Error("Automation stopped by user"));
+          return;
+        }
+
+        if (!document.hidden) {
+          cleanup();
+          resolve();
+        }
+      };
+
+      timer = setTimeout(() => {
+        cleanup();
+        reject(new Error("VTU tab stayed hidden for too long"));
+      }, timeout);
+
+      document.addEventListener("visibilitychange", handleVisibility);
+    });
+  }
+
   async function humanDelay(min = 1000, max = 3000, reason = "waiting") {
+    await waitForVisibleDocument();
     const duration = randomInt(min, max);
     log(`${reason} for ${duration}ms`);
     await sleep(duration);
@@ -106,6 +146,15 @@
 
       cancelWatcher = setInterval(() => {
         if (!isAutomationCancelled()) {
+          if (document.hidden) {
+            return;
+          }
+
+          const element = root.querySelector(selector);
+          if (element) {
+            cleanup();
+            resolve(element);
+          }
           return;
         }
 
@@ -347,6 +396,7 @@
     textMatches,
     throwIfAutomationCancelled,
     typeLikeHuman,
+    waitForVisibleDocument,
     waitForCondition,
     waitForElement,
     waitForUrlChange

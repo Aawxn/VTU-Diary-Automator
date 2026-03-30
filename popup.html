@@ -270,6 +270,15 @@
         font-size: 11px;
       }
 
+      code {
+        padding: 1px 6px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.07);
+        color: #d8e3ff;
+        font-family: Consolas, monospace;
+        font-size: 10px;
+      }
+
       .feedback {
         margin-bottom: 10px;
         padding: 10px 12px;
@@ -314,7 +323,7 @@
     <div class="panel">
       <div class="eyebrow">VTU Automator</div>
       <h1>Diary Flow</h1>
-      <p class="sub">Validate, run, and optionally paste GPT JSON without touching the page mid-run.</p>
+      <p class="sub">Validate your source, then start on the active VTU tab.</p>
 
       <div class="status-shell">
         <div class="status-top">
@@ -359,7 +368,7 @@
       </div>
 
       <div class="drawer" id="importDrawer">
-        <p class="drawer-copy">Paste a JSON array or upload a `.json` / `.txt` file. This does not overwrite `data.json`; it stores imported entries inside the extension until you switch back.</p>
+        <p class="drawer-copy">Paste a JSON array or upload a `.json` / `.txt` file. Imported data stays inside the extension until you switch back to <code>data.json</code>.</p>
         <div class="feedback" id="importFeedback" hidden></div>
         <textarea id="jsonInput" placeholder='[{"date":"2026-01-29","workSummary":"...","learningOutcomes":"...","skills":["Machine learning"]}]'></textarea>
         <input class="file-input" id="fileInput" type="file" accept=".json,.txt,application/json,text/plain">

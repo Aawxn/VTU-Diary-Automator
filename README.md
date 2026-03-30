@@ -164,6 +164,26 @@ When you paste JSON or upload a `.json` / `.txt` file:
 - malformed JSON is caught early
 - valid imported data becomes the active source automatically
 
+## Quick Test Matrix
+
+Run these before trusting a long batch:
+
+- `data.json` source, all new dates
+- imported JSON source, all new dates
+- mixed existing + new dates with overwrite `Off`
+- mixed existing + new dates with overwrite `On`
+- one invalid skill label
+- one malformed JSON / GPT response with extra prose
+- slow-tab check: switch away mid-run and confirm the extension pauses cleanly, then resumes when you return
+- notification check: block browser notifications and confirm the run still finishes and updates status in the UI
+
+What to capture if something fails:
+
+- the current date shown in the popup or pinned panel
+- whether the source is `Imported JSON` or `data.json`
+- the current phase
+- the last 10-20 `[VTU Automator]` console lines
+
 ## Existing Entry Behavior
 
 ### Default mode

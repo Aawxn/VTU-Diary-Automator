@@ -266,7 +266,9 @@
       return "Automation is running on the active VTU tab.";
     }
 
-    return "Waiting for Start.";
+    return state.importedEntries.length
+      ? "Imported JSON is active. Validate, then start when the VTU tab is ready."
+      : "Using data.json. Validate, then start when the VTU tab is ready.";
   }
 
   function getActiveSourceLabel(state) {
@@ -333,8 +335,8 @@
             ? `Looks good: ${importValidationState.entries.length} entries ready to use.`
             : "Paste or upload a JSON array. Validation runs automatically.")
         : (state.importedEntries.length
-            ? `Imported JSON active: ${state.importedEntries.length} entries`
-            : "Using built-in VTU skill validation.")
+            ? `Imported JSON active: ${state.importedEntries.length} entries.`
+            : "data.json is active. Validate before you start.")
     );
 
     statusBadge.dataset.state = currentState;
