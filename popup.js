@@ -6,6 +6,7 @@
   const phaseText = document.getElementById("phaseText");
   const statusBar = document.getElementById("statusBar");
   const hintText = document.getElementById("hintText");
+  const sourceBadge = document.getElementById("sourceBadge");
   const toggleBtn = document.getElementById("toggleBtn");
   const validateBtn = document.getElementById("validateBtn");
   const panelBtn = document.getElementById("panelBtn");
@@ -268,6 +269,10 @@
     return "Waiting for Start.";
   }
 
+  function getActiveSourceLabel(state) {
+    return state.importedEntries.length ? "Imported JSON" : "data.json";
+  }
+
   async function readState() {
     const result = await chrome.storage.local.get([
       "vtuAutomationEnabled",
@@ -355,6 +360,8 @@
     jsonInput.dataset.state = importValidationState.error
       ? "error"
       : (importValidationState.valid ? "valid" : "");
+    sourceBadge.textContent = getActiveSourceLabel(state);
+    sourceBadge.dataset.source = state.importedEntries.length ? "imported" : "file";
     if (!jsonInput.value && state.importedEntries.length) {
       jsonInput.value = JSON.stringify(state.importedEntries, null, 2);
       importValidationState = {
@@ -370,6 +377,11 @@
     const nextOpen = typeof forceOpen === "boolean" ? forceOpen : !importDrawer.classList.contains("open");
     importDrawer.classList.toggle("open", nextOpen);
     importToggleBtn.textContent = nextOpen ? "Hide Data Input" : "Data Input";
+    if (nextOpen) {
+      requestAnimationFrame(() => {
+        importDrawer.scrollIntoView({ behavior: "smooth", block: "end" });
+      });
+    }
   }
 
   async function getActiveTab() {

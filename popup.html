@@ -21,18 +21,23 @@
 
       html, body {
         margin: 0;
-        width: 274px;
-        background: transparent;
+        width: 320px;
+        background:
+          radial-gradient(circle at top left, rgba(79, 124, 255, 0.14), transparent 32%),
+          linear-gradient(180deg, #0a0f1d 0%, #090d18 100%);
         color: var(--text);
         font: 13px/1.45 "Segoe UI", sans-serif;
       }
 
       body {
-        padding: 8px;
-        background: transparent;
+        padding: 10px;
+        max-height: 600px;
+        overflow: hidden;
       }
 
       .panel {
+        position: relative;
+        scroll-behavior: smooth;
         border-radius: 26px;
         background:
           radial-gradient(circle at top left, rgba(79, 124, 255, 0.16), transparent 34%),
@@ -40,6 +45,14 @@
         border: 1px solid var(--line);
         box-shadow: 0 24px 60px rgba(3, 8, 20, 0.42);
         padding: 12px;
+        max-height: 580px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+
+      .panel::-webkit-scrollbar {
+        width: 0;
+        height: 0;
       }
 
       .eyebrow {
@@ -155,6 +168,49 @@
       .hint[data-state="error"] { color: #ff9e8f; }
       .hint[data-state="success"] { color: #8ee0b7; }
 
+      .source-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .source-label {
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .source-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        color: #dbe5ff;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .source-badge::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: #6ea0ff;
+      }
+
+      .source-badge[data-source="imported"] {
+        color: #9be7bf;
+      }
+
+      .source-badge[data-source="imported"]::before {
+        background: #73d7a7;
+      }
+
       .actions { display: grid; gap: 8px; margin-top: 12px; }
 
       .split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -179,6 +235,7 @@
         display: none;
         margin-top: 8px;
         padding: 12px;
+        padding-bottom: 12px;
         border-radius: 20px;
         background: rgba(255,255,255,0.05);
         border: 1px solid rgba(255,255,255,0.05);
@@ -283,6 +340,10 @@
 
         <div class="bar"><span id="statusBar"></span></div>
         <div class="hint" id="hintText">Using built-in VTU skill validation.</div>
+        <div class="source-row">
+          <span class="source-label">Active Source</span>
+          <span class="source-badge" id="sourceBadge" data-source="file">data.json</span>
+        </div>
       </div>
 
       <div class="actions">

@@ -3,7 +3,6 @@
     currentIndex: "vtuCurrentIndex",
     automationEnabled: "vtuAutomationEnabled",
     status: "vtuAutomationStatus",
-    allowedSkills: "vtuAllowedSkills",
     overwriteExisting: "vtuOverwriteExisting",
     panelVisible: "vtuPanelVisible",
     panelCollapsed: "vtuPanelCollapsed",
@@ -51,15 +50,6 @@
 
   async function clearAutomationStatus() {
     await chrome.storage.local.remove(STORAGE_KEYS.status);
-  }
-
-  async function getAllowedSkills() {
-    const result = await get(STORAGE_KEYS.allowedSkills);
-    return Array.isArray(result[STORAGE_KEYS.allowedSkills]) ? result[STORAGE_KEYS.allowedSkills] : [];
-  }
-
-  async function setAllowedSkills(skills) {
-    await chrome.storage.local.set({ [STORAGE_KEYS.allowedSkills]: Array.isArray(skills) ? skills : [] });
   }
 
   async function getOverwriteExisting() {
@@ -116,7 +106,6 @@
 
   globalThis.VTUStorage = {
     clearAutomationStatus,
-    getAllowedSkills,
     getImportedEntries,
     getOverwriteExisting,
     STORAGE_KEYS,
@@ -126,7 +115,6 @@
     isAutomationEnabled,
     isPanelCollapsed,
     isPanelVisible,
-    setAllowedSkills,
     setAutomationEnabled,
     setAutomationStatus,
     setCurrentIndex,

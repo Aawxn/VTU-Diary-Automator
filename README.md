@@ -138,19 +138,26 @@ Because the extension accepts `.txt` files, users can paste that JSON into a tex
 
 ## Popup Controls
 
-The popup is intentionally small now:
+The popup is the launcher and status surface for the extension:
 
-- `Data Input`: open or hide the import drawer
-- `Start Automation` / `Stop Automation`
-- `Pinned Panel`: show or hide the floating in-page controller
-- `Reset`
-- `Overwrite Existing: On/Off`: inside the data drawer, with confirmation before enabling
+- `Validate`: checks the active source before you run anything
+- `Data Input`: opens or hides the import drawer
+- `Start Automation` / `Stop Automation`: starts or stops the VTU flow
+- `Hide Panel` / `Show Panel`: controls the floating in-page panel on the VTU tab
+- `Reset`: resets run progress and status, but does not delete imported JSON or change overwrite mode
+
+Inside the data drawer:
+
+- Paste JSON or upload a `.json` / `.txt` file
+- `Use data.json`: switches back to the file in the extension folder
+- `Overwrite Existing: On/Off`: bypasses skip mode and continues into the edit form, with confirmation before enabling
 
 ## Auto Validation
 
 When you paste JSON or upload a `.json` / `.txt` file:
 
 - the extension validates it automatically
+- you can still press `Validate` manually before starting
 - the extension tries to clean GPT-style pasted text automatically
 - invalid skill labels are caught early
 - missing fields are caught early

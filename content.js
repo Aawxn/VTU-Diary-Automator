@@ -829,7 +829,7 @@
     });
   }
 
-  function ensureFloatingPanel() {
+  function ensureFloatingPanelLegacy() {
     let panel = document.getElementById(FLOATING_PANEL_ID);
     if (panel) {
       if (panel.dataset.version === FLOATING_PANEL_VERSION) {
@@ -1047,6 +1047,7 @@
           </div>
           <div class="vtu-progress"><span data-role="bar"></span></div>
           <div class="vtu-actions">
+            <button class="vtu-secondary" type="button" data-role="validate">Validate</button>
             <button class="vtu-secondary" type="button" data-role="reset" data-tone="danger">Reset</button>
             <button class="vtu-primary" type="button" data-role="toggle" data-mode="start">Start Automation</button>
           </div>
@@ -1076,20 +1077,55 @@
       await renderFloatingPanel();
     });
 
+    bindPanelButton(panel.querySelector("[data-role='validate']"), async () => {
+      try {
+        const result = await validateCurrentEntries();
+        await updateAutomationStatus({
+          state: "idle",
+          phase: "validated",
+          page: detectPage(),
+          date: result.dates[0] || null,
+          index: result.count,
+          total: result.count,
+          message: `Validated ${result.count} entries from ${result.source === "imported_json" ? "imported JSON" : "data.json"}.`
+        });
+      } catch (error) {
+        await updateAutomationStatus({
+          state: "error",
+          phase: "validation_error",
+          message: error?.message || "Validation failed."
+        });
+      }
+    });
+
     bindPanelButton(panel.querySelector("[data-role='toggle']"), async () => {
       const state = await readUiState();
       const nextEnabled = !isUiRunningState(state);
-      await setAutomationEnabled(nextEnabled);
 
       if (nextEnabled) {
-        automationState.stopRequested = false;
-        await updateAutomationStatus({
-          state: "running",
-          phase: "starting",
-          message: "Start received from the floating panel."
-        });
-        humanDelay(200, 500, "starting from panel").then(() => run());
+        try {
+          const result = await validateCurrentEntries();
+          await setAutomationEnabled(true);
+          automationState.stopRequested = false;
+          await updateAutomationStatus({
+            state: "running",
+            phase: "starting",
+            date: result.dates[0] || null,
+            index: await getCurrentIndex(),
+            total: result.count,
+            message: "Start received from the floating panel."
+          });
+          humanDelay(200, 500, "starting from panel").then(() => run());
+        } catch (error) {
+          await setAutomationEnabled(false);
+          await updateAutomationStatus({
+            state: "error",
+            phase: "validation_error",
+            message: error?.message || "Validation failed."
+          });
+        }
       } else {
+        await setAutomationEnabled(false);
         automationState.stopRequested = true;
         await updateAutomationStatus({
           state: "stopped",
