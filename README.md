@@ -4,7 +4,28 @@ Stop repeating the same VTU diary flow by hand.
 
 This extension automates the VTU Internship Diary portal for students who already know what they want to submit and just want the browser to do the repetitive part safely.
 
-It validates your entries, handles the two-page VTU flow, skips existing diary dates by default, supports overwrite mode when you explicitly allow it, and keeps progress in local storage so the run can recover across redirects and reloads.
+It validates your entries, handles the VTU `student-diary` and `diary-entries` flow, skips existing diary dates by default, supports overwrite mode when you explicitly allow it, and keeps progress in local storage so the run can recover across redirects and reloads.
+
+## Download
+
+- Repository: [VTU-Diary-Automator](https://github.com/Aawxn/VTU-Diary-Automator)
+- Direct download: [Download ZIP](https://github.com/Aawxn/VTU-Diary-Automator/archive/refs/heads/main.zip)
+
+## Before You Start
+
+These are required:
+
+1. Stay logged in to VTU
+2. Open the main `student-diary` page before starting:
+   `https://vtu.internyet.in/dashboard/student/student-diary`
+3. Keep the VTU tab active for the most reliable run
+
+Useful VTU routes:
+
+- `student-diary`
+  `https://vtu.internyet.in/dashboard/student/student-diary`
+- `diary-entries`
+  `https://vtu.internyet.in/dashboard/student/diary-entries`
 
 ## What It Does
 
@@ -12,8 +33,8 @@ It validates your entries, handles the two-page VTU flow, skips existing diary d
 
 - reads entries from `data.json` or imported JSON
 - validates dates, required fields, and skills before running
-- selects the internship and date on Page 1
-- fills the required diary form on Page 2
+- selects the internship and date on `student-diary`
+- fills the required diary form after `Continue`
 - saves entries one by one
 - skips existing diary dates by default
 - supports `Overwrite Existing` with confirmation
@@ -27,8 +48,13 @@ Chrome does not offer a free normal public install path outside the Chrome Web S
 1. Open `chrome://extensions/`
 2. Turn on `Developer mode`
 3. Click `Load unpacked`
-4. Select the extension folder: [d:/Automise](d:/Automise)
-5. Pin the extension from the browser toolbar if you want quick access
+4. Extract the ZIP if needed
+5. Select the extension folder: [d:/Automise](d:/Automise)
+6. Pin the extension from the browser toolbar if you want quick access
+
+Latest ZIP:
+
+- [https://github.com/Aawxn/VTU-Diary-Automator/archive/refs/heads/main.zip](https://github.com/Aawxn/VTU-Diary-Automator/archive/refs/heads/main.zip)
 
 After every code update:
 
@@ -39,12 +65,14 @@ After every code update:
 
 The easiest workflow is:
 
-1. Ask ChatGPT to generate internship diary entries in the required JSON format
-2. Open the extension popup
-3. Use `Data Input`
-4. Paste the JSON or upload a `.json` / `.txt` file
-5. Click `Validate`
-6. Click `Start Automation`
+1. Log in to VTU
+2. Open `https://vtu.internyet.in/dashboard/student/student-diary`
+3. Ask ChatGPT to generate internship diary entries in the required JSON format
+4. Open the extension popup
+5. Use `Data Input`
+6. Paste the JSON or upload a `.json` / `.txt` file
+7. Click `Validate`
+8. Click `Start Automation`
 
 If you prefer file-based input, you can edit [data.json](d:/Automise/data.json) directly and run from that instead.
 
@@ -320,7 +348,7 @@ If VTU opens an already existing diary entry:
 
 1. the extension treats it as already present
 2. clicks `Cancel`
-3. returns to the diary entries list
+3. returns to `diary-entries`
 4. clicks `Create`
 5. continues with the next item
 
@@ -336,7 +364,7 @@ If `Overwrite Existing` is enabled:
 
 For each entry:
 
-1. load the internship diary page
+1. start on `student-diary`
 2. select internship
 3. set the date
 4. click `Continue`
@@ -360,9 +388,10 @@ If something goes wrong, debug in this order.
 ### 2. Open the VTU page console
 
 1. Go to the VTU tab
-2. Press `F12`
-3. Open `Console`
-4. Filter for:
+2. Make sure you are on `student-diary` or `diary-entries`
+3. Press `F12`
+4. Open `Console`
+5. Filter for:
 
 ```text
 [VTU Automator]
@@ -410,7 +439,7 @@ It only appears on:
 https://vtu.internyet.in/*
 ```
 
-It will not appear on `chrome://extensions`.
+It will not appear on `chrome://extensions`, and automation should be started from the main `student-diary` page.
 
 ### Imported JSON did not overwrite `data.json`
 
