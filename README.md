@@ -1,55 +1,74 @@
-# Sick and tired of filling the VTU Diary manually?
+# VTU Internship Diary Automator
 
-Same.
+Stop repeating the same VTU diary flow by hand.
 
-This extension is built to take the repetitive, annoying part of the VTU Internship Diary workflow off your hands. Instead of picking the date, opening the form, typing summaries, adding skills, and dealing with duplicate-entry pages over and over again, you prepare your entries once and let the extension run the loop.
+This extension automates the VTU Internship Diary portal for students who already know what they want to submit and just want the browser to do the repetitive part safely.
 
-## What This Extension Does
+It validates your entries, handles the two-page VTU flow, skips existing diary dates by default, supports overwrite mode when you explicitly allow it, and keeps progress in local storage so the run can recover across redirects and reloads.
 
-`VTU Internship Diary Automator` is a Chrome Extension (Manifest V3) that:
+## What It Does
 
-- reads internship diary entries from `data.json` or imported JSON
-- validates the data before a run
+`VTU Internship Diary Automator` is a Manifest V3 browser extension that:
+
+- reads entries from `data.json` or imported JSON
+- validates dates, required fields, and skills before running
 - selects the internship and date on Page 1
-- fills the mandatory diary form on Page 2
-- saves each entry sequentially
-- skips existing dates by default
-- supports an optional overwrite mode for existing entries
-- stores progress locally so the run can continue across redirects and reloads
+- fills the required diary form on Page 2
+- saves entries one by one
+- skips existing diary dates by default
+- supports `Overwrite Existing` with confirmation
+- stores progress locally
+- shows status in both the popup and the pinned in-page control panel
 
-## Best Way To Use It
+## Installation In Chrome
 
-The cleanest workflow is:
+Chrome does not offer a free normal public install path outside the Chrome Web Store, so the manual developer-mode flow is:
 
-1. Ask GPT to generate diary entries in the exact format shown below
+1. Open `chrome://extensions/`
+2. Turn on `Developer mode`
+3. Click `Load unpacked`
+4. Select the extension folder: [d:/Automise](d:/Automise)
+5. Pin the extension from the browser toolbar if you want quick access
+
+After every code update:
+
+1. Reload the extension in `chrome://extensions`
+2. Refresh the VTU tab once
+
+## Basic Workflow
+
+The easiest workflow is:
+
+1. Ask ChatGPT to generate internship diary entries in the required JSON format
 2. Open the extension popup
 3. Use `Data Input`
 4. Paste the JSON or upload a `.json` / `.txt` file
-5. Let the extension auto-clean, auto-validate, and auto-activate it
+5. Click `Validate`
 6. Click `Start Automation`
 
-If you prefer files, you can still edit [data.json](d:/Automise/data.json) directly and run from that.
+If you prefer file-based input, you can edit [data.json](d:/Automise/data.json) directly and run from that instead.
 
-## Input Sources
+## Data Sources
 
-### Option 1: `data.json`
+The extension supports two sources:
 
-Edit [data.json](d:/Automise/data.json) directly inside the extension folder.
+### `data.json`
 
-### Option 2: Popup `Data Input`
+Edit [data.json](d:/Automise/data.json) directly.
 
-Paste GPT output into the popup or upload a `.json` / `.txt` file.
+### Imported JSON
+
+Paste JSON into the popup drawer or upload a `.json` / `.txt` file.
 
 Important:
 
-- imported data does **not** overwrite [data.json](d:/Automise/data.json)
-- imported data is stored inside extension storage
-- it remains active until you click `Use data.json`
-- pasted GPT text is auto-cleaned before validation when possible
+- imported JSON does **not** overwrite [data.json](d:/Automise/data.json)
+- imported JSON is stored in extension storage
+- it stays active until you switch back using `Use data.json`
 
 ## Required JSON Format
 
-Use this structure:
+Use this exact structure:
 
 ```json
 [
@@ -71,162 +90,42 @@ Use this structure:
 - `hours`: optional, defaults to `3`
 - `skills`: optional, defaults to `["Machine learning"]`
 
-Multiple skills are supported as long as each value exists in the VTU skill list.
+Multiple skills are supported, but every skill must match a valid VTU skill label.
 
-## GPT Prompt For JSON Output
+## ChatGPT Prompt
 
-Use this prompt if you want GPT to return ready-to-paste JSON:
+Use this prompt when you want ChatGPT to generate entries for this extension.
 
 ```text
-Generate VTU internship diary entries in strict JSON array format.
+Generate VTU internship diary entries for the VTU Internship Diary Automator extension.
 
 Return only valid JSON.
-Do not wrap the answer in markdown.
+Do not use markdown.
 Do not add explanations.
+Do not add headings.
+Do not wrap the response in code fences.
 
-Use this exact schema for every object:
-{
-  "date": "YYYY-MM-DD",
-  "workSummary": "string",
-  "learningOutcomes": "string",
-  "hours": 3,
-  "skills": ["Machine learning"]
-}
-
-Rules:
-- workSummary must sound like realistic internship work done that day
-- learningOutcomes must be short, practical, and relevant
-- date must always be in YYYY-MM-DD format
-- use only allowed VTU skill labels from the provided skill list
-- if unsure, use "Machine learning"
-- return a JSON array only
-```
-
-## GPT Prompt For Plain Text File Output
-
-If someone wants to save GPT output into a `.txt` file and upload that into the extension, use this:
-
-```text
-Generate VTU internship diary entries and return only valid raw JSON text.
-
-Important:
-- output must be plain JSON text only
-- no markdown
-- no triple backticks
-- no heading
-- no explanation
-
-Schema:
+Output schema:
 [
   {
     "date": "YYYY-MM-DD",
     "workSummary": "string",
     "learningOutcomes": "string",
     "hours": 3,
-    "skills": ["Machine learning"]
+    "skills": ["Exact VTU skill label"]
   }
 ]
 
 Rules:
-- use realistic internship language
-- keep learningOutcomes concise
-- use only skills from the allowed VTU skill list
-- if uncertain, use "Machine learning"
-```
+- workSummary should sound like realistic internship work done that day
+- learningOutcomes should be concise, practical, and relevant
+- date must be in YYYY-MM-DD format
+- hours should normally be 3 unless explicitly changed
+- use only exact skill labels from the allowed VTU skill list below
+- if uncertain, choose the closest valid skill label instead of inventing a new one
+- return a JSON array only
 
-Because the extension accepts `.txt` files, users can paste that JSON into a text file and upload it directly.
-
-## Popup Controls
-
-The popup is the launcher and status surface for the extension:
-
-- `Validate`: checks the active source before you run anything
-- `Data Input`: opens or hides the import drawer
-- `Start Automation` / `Stop Automation`: starts or stops the VTU flow
-- `Hide Panel` / `Show Panel`: controls the floating in-page panel on the VTU tab
-- `Reset`: resets run progress and status, but does not delete imported JSON or change overwrite mode
-
-Inside the data drawer:
-
-- Paste JSON or upload a `.json` / `.txt` file
-- `Use data.json`: switches back to the file in the extension folder
-- `Overwrite Existing: On/Off`: bypasses skip mode and continues into the edit form, with confirmation before enabling
-
-## Auto Validation
-
-When you paste JSON or upload a `.json` / `.txt` file:
-
-- the extension validates it automatically
-- you can still press `Validate` manually before starting
-- the extension tries to clean GPT-style pasted text automatically
-- invalid skill labels are caught early
-- missing fields are caught early
-- malformed JSON is caught early
-- valid imported data becomes the active source automatically
-
-## Quick Test Matrix
-
-Run these before trusting a long batch:
-
-- `data.json` source, all new dates
-- imported JSON source, all new dates
-- mixed existing + new dates with overwrite `Off`
-- mixed existing + new dates with overwrite `On`
-- one invalid skill label
-- one malformed JSON / GPT response with extra prose
-- slow-tab check: switch away mid-run and confirm the extension pauses cleanly, then resumes when you return
-- notification check: block browser notifications and confirm the run still finishes and updates status in the UI
-
-What to capture if something fails:
-
-- the current date shown in the popup or pinned panel
-- whether the source is `Imported JSON` or `data.json`
-- the current phase
-- the last 10-20 `[VTU Automator]` console lines
-
-## Existing Entry Behavior
-
-### Default mode
-
-If VTU opens an existing diary entry:
-
-1. the extension treats it as already present
-2. it clicks `Cancel`
-3. returns to the diary entries list
-4. clicks `Create`
-5. continues with the next item
-
-### Overwrite mode
-
-If `Overwrite Existing` is enabled:
-
-- the extension will not skip existing entries
-- instead it continues into the edit form
-- this mode requires explicit confirmation when turned on
-
-## Current Automation Loop
-
-The extension handles this sequence:
-
-1. Open VTU diary page
-2. Select internship
-3. Pick the date
-4. Click `Continue`
-5. Fill Work Summary
-6. Fill Hours
-7. Fill Learnings / Outcomes
-8. Select one or more skills
-9. Click `Save`
-10. Move to the next entry
-
-## Allowed VTU Skill Labels
-
-Use these exact labels for best results.
-
-<details>
-<summary>Open the full VTU skill list</summary>
-
-```json
+Allowed VTU skill list:
 [
   "3D PRINTING CONCEPTS, DESIGN AND PRINTING",
   "Accounting",
@@ -351,95 +250,198 @@ Use these exact labels for best results.
 ]
 ```
 
-</details>
+## Popup Buttons
 
-## Installation
+### Main popup
+
+- `Validate`
+  Validates the active source before a run.
+
+- `Data Input`
+  Opens or hides the import drawer.
+
+- `Start Automation` / `Stop Automation`
+  Starts or stops the VTU automation on the active VTU tab.
+
+- `Show Panel` / `Hide Panel`
+  Shows or hides the floating in-page control panel on the VTU site.
+
+- `Reset`
+  Resets current run progress and stops automation.
+
+What `Reset` does:
+
+- resets run index to `0`
+- resets status/progress
+- stops automation
+
+What `Reset` does **not** do:
+
+- does not overwrite [data.json](d:/Automise/data.json)
+- does not delete imported JSON
+- does not silently disable overwrite mode
+
+### Data drawer
+
+- paste JSON directly into the textarea
+- upload a `.json` or `.txt` file
+- `Use data.json`
+  Switches back to file-based data
+- `Overwrite Existing: On/Off`
+  Enables editing existing diary entries instead of skipping them
+
+## Floating Panel Buttons
+
+The pinned panel is the in-page controller shown on the VTU website itself.
+
+- `Validate`
+  Validates the current active source
+
+- `Start Automation` / `Stop Automation`
+  Starts or stops the run
+
+- `Reset`
+  Resets run progress
+
+- `-`
+  Collapses the panel
+
+- `x`
+  Hides the panel
+
+- drag handle
+  Lets you move the panel around the page
+
+## Existing Entry Behavior
+
+### Default mode
+
+If VTU opens an already existing diary entry:
+
+1. the extension treats it as already present
+2. clicks `Cancel`
+3. returns to the diary entries list
+4. clicks `Create`
+5. continues with the next item
+
+### Overwrite mode
+
+If `Overwrite Existing` is enabled:
+
+- the extension does not skip the existing entry
+- it continues into the edit form instead
+- the toggle asks for confirmation before enabling
+
+## How The Automation Works
+
+For each entry:
+
+1. load the internship diary page
+2. select internship
+3. set the date
+4. click `Continue`
+5. fill work summary
+6. fill hours
+7. fill learning outcomes
+8. select skills
+9. click `Save`
+10. move to the next entry
+
+## Debugging
+
+If something goes wrong, debug in this order.
+
+### 1. Reload cleanly
 
 1. Open `chrome://extensions/`
-2. Turn on `Developer mode`
-3. Click `Load unpacked`
-4. Select [d:/Automise](d:/Automise)
+2. Click `Reload` on the extension
+3. Refresh the VTU tab once
 
-## File Map
+### 2. Open the VTU page console
 
-- [manifest.json](d:/Automise/manifest.json): extension manifest
-- [content.js](d:/Automise/content.js): main automation logic
-- [utils.js](d:/Automise/utils.js): retry, wait, delay, selector helpers
-- [storage.js](d:/Automise/storage.js): extension state
-- [popup.html](d:/Automise/popup.html): popup UI
-- [popup.js](d:/Automise/popup.js): popup actions
-- [background.js](d:/Automise/background.js): completion notifications
-- [skills.js](d:/Automise/skills.js): built-in VTU skill list for popup validation
-- [data.json](d:/Automise/data.json): file-based entry source
-
-## Review Notes
-
-After reviewing the codebase, the main risks I found are:
-
-1. Chrome tab throttling is still the biggest real-world reliability risk.
-   DOM-heavy automations with custom date pickers and dropdowns are much more reliable when the VTU tab stays active.
-
-2. The portal’s internship selector and page transitions are the shakiest parts of the flow.
-   I already added retry logic and a reload recovery path, but this is still the area most likely to fail if VTU renders slowly or inconsistently.
-
-3. Existing-entry handling has the most branching.
-   Default skip mode, overwrite mode, list-page recovery, and edit-page recovery all work, but this is the part most worth stress-testing with mixed datasets.
-
-4. Browser noise can still confuse debugging.
-   Some console errors come from Chrome extensions or the VTU page itself, not from this extension. Focus on logs prefixed with `[VTU Automator]`.
-
-## Recommended Bug Testing
-
-If you want to pressure-test the extension, try these:
-
-- a run where every date already exists
-- a run where none of the dates exist
-- a mixed run with both existing and new dates
-- multiple skills per entry
-- imported JSON instead of `data.json`
-- overwrite mode on
-- overwrite mode off
-- one intentionally invalid skill
-- one malformed JSON payload
-- one slow-network run
-
-## Troubleshooting
-
-### The pinned panel is missing
-
-The pinned panel only appears on `https://vtu.internyet.in/*`, not on `chrome://extensions`.
-
-### Did imported JSON overwrite `data.json`?
-
-No. Imported data stays inside extension storage until you switch back to [data.json](d:/Automise/data.json).
-
-### What if the network is slow?
-
-The extension waits for:
-
-- supported page detection
-- element rendering
-- date picker readiness
-- list-page readiness
-- save completion
-
-If the portal becomes too unstable, the run should stop safely instead of blindly continuing.
-
-### Why do I still see random console errors?
-
-Look specifically for:
+1. Go to the VTU tab
+2. Press `F12`
+3. Open `Console`
+4. Filter for:
 
 ```text
 [VTU Automator]
 ```
 
-Errors like injected scripts, other extension code, or site-internal warnings are often unrelated.
+Ignore most unrelated browser/site noise unless it clearly references this extension.
+
+### 3. Check the current UI state
+
+Capture:
+
+- current date shown in the popup or pinned panel
+- current phase
+- active source: `Imported JSON` or `data.json`
+- overwrite state: `On` or `Off`
+
+### 4. Use this bug test matrix
+
+- `data.json` source, all new dates
+- imported JSON source, all new dates
+- mixed existing + new dates with overwrite `Off`
+- mixed existing + new dates with overwrite `On`
+- one invalid skill label
+- one malformed JSON / GPT response with extra prose
+- tab hidden mid-run
+- slow network
+- notifications blocked
+
+### 5. What to send when reporting a failure
+
+Send:
+
+- the dataset source you used
+- whether overwrite mode was on
+- the last 10-20 `[VTU Automator]` console lines
+- a screenshot of the current VTU page if possible
+
+## Troubleshooting
+
+### The pinned panel is missing
+
+It only appears on:
+
+```text
+https://vtu.internyet.in/*
+```
+
+It will not appear on `chrome://extensions`.
+
+### Imported JSON did not overwrite `data.json`
+
+That is expected.
+
+Imported JSON stays in extension storage until you click `Use data.json`.
+
+### Why does the extension care about the active tab?
+
+VTU uses custom date pickers and dropdowns. Browser tab throttling can make those controls unreliable in the background. The extension now pauses more safely when the VTU tab is hidden, but keeping the tab active is still best.
+
+### What if the network is slow?
+
+The extension uses waits, retries, DOM checks, and recovery reloads. Slow pages should usually still work unless the portal becomes too inconsistent or exceeds timeout limits.
+
+## File Map
+
+- [manifest.json](d:/Automise/manifest.json): extension manifest
+- [content.js](d:/Automise/content.js): main VTU automation logic
+- [utils.js](d:/Automise/utils.js): wait/retry/delay helpers
+- [storage.js](d:/Automise/storage.js): local extension state
+- [popup.html](d:/Automise/popup.html): popup UI
+- [popup.js](d:/Automise/popup.js): popup behavior
+- [background.js](d:/Automise/background.js): completion notifications
+- [skills.js](d:/Automise/skills.js): built-in VTU skill list
+- [data.json](d:/Automise/data.json): file-based data source
 
 ## Practical Advice
 
-- reload the extension after code updates
-- refresh the VTU tab once after reloading
-- keep the VTU tab active for the most reliable runs
-- avoid clicking the form during automation
+- validate before long runs
 - prefer exact skill labels
 - test overwrite mode carefully
+- keep the VTU tab active for the most reliable results
+- do not click around the VTU form while automation is running
