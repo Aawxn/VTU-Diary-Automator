@@ -9,7 +9,7 @@ It validates your entries, handles the VTU `student-diary` and `diary-entries` f
 ## Download
 
 - Repository: [VTU-Diary-Automator](https://github.com/Aawxn/VTU-Diary-Automator)
-- Direct download: [Download ZIP](https://github.com/Aawxn/VTU-Diary-Automator/archive/refs/heads/main.zip)
+- Direct download: [Download Release Package](https://github.com/Aawxn/VTU-Diary-Automator/releases/download/1.0.1-beta/Automise.rar)
 
 ## Before You Start
 
@@ -49,17 +49,44 @@ Chrome does not offer a free normal public install path outside the Chrome Web S
 2. Turn on `Developer mode`
 3. Click `Load unpacked`
 4. Extract the ZIP if needed
-5. Select the extension folder: [d:/Automise](d:/Automise)
+5. Select the extracted extension folder: [d:/Automise](d:/Automise)
 6. Pin the extension from the browser toolbar if you want quick access
 
-Latest ZIP:
+Latest release package:
 
-- [https://github.com/Aawxn/VTU-Diary-Automator/archive/refs/heads/main.zip](https://github.com/Aawxn/VTU-Diary-Automator/archive/refs/heads/main.zip)
+- [https://github.com/Aawxn/VTU-Diary-Automator/releases/download/1.0.1-beta/Automise.rar](https://github.com/Aawxn/VTU-Diary-Automator/releases/download/1.0.1-beta/Automise.rar)
 
 After every code update:
 
 1. Reload the extension in `chrome://extensions`
 2. Refresh the VTU tab once
+
+## Easier Launch For Friends
+
+If you do not want the usual `chrome://extensions` + `Load unpacked` flow, there is a simpler option:
+
+1. Download and extract the release package
+2. Open the extracted folder
+3. Double-click [launch-vtu-automator.bat](d:/Automise/launch-vtu-automator.bat)
+4. It will open Edge or Chrome with:
+   - the extension loaded from this folder
+   - a separate local browser profile just for VTU Automator
+   - the VTU `student-diary` page opened directly
+
+What this launcher does:
+
+- skips the manual developer-mode install steps every time
+- keeps the extension isolated in its own browser profile
+- opens the correct VTU start page automatically
+
+Important:
+
+- this is the easiest no-store option, but it is still not a real store install
+- users must keep the extracted folder on their PC
+- if the folder is moved or deleted, the launcher will stop working
+- users still need to log in to VTU in that launcher browser profile
+
+If the launcher cannot find Edge or Chrome, it will stop and show an error.
 
 ## Basic Workflow
 
@@ -75,6 +102,8 @@ The easiest workflow is:
 8. Click `Start Automation`
 
 If you prefer file-based input, you can edit [data.json](d:/Automise/data.json) directly and run from that instead.
+
+If you launch with [launch-vtu-automator.bat](d:/Automise/launch-vtu-automator.bat), it will open the correct VTU start page automatically.
 
 ## Data Sources
 
