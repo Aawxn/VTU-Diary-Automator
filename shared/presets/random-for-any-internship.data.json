@@ -1,0 +1,281 @@
+[
+  {
+    "date": "2026-01-28",
+    "workSummary": "Initiated work on internship learning modules by exploring the fundamental concepts related to the assigned domain. Reviewed introductory materials, documentation, and structured content to understand the scope of the internship and the type of problems being addressed.",
+    "learningOutcomes": "Gained clarity on internship expectations and developed an initial understanding of domain-specific concepts and workflows.",
+    "hours": 3,
+    "skills": [
+      "Management Information System"
+    ]
+  },
+  {
+    "date": "2026-01-29",
+    "workSummary": "Continued studying core concepts and began analyzing how theoretical knowledge can be translated into practical implementations. Focused on understanding system-level thinking and how different components interact within a workflow.",
+    "learningOutcomes": "Learned how structured thinking and conceptual clarity contribute to efficient problem-solving.",
+    "hours": 3,
+    "skills": [
+      "Operations Management"
+    ]
+  },
+  {
+    "date": "2026-01-30",
+    "workSummary": "Worked on applying initial concepts through small practical exercises and guided examples. Focused on understanding input-output relationships and how logic flows within a system.",
+    "learningOutcomes": "Improved ability to map theoretical concepts into simple working solutions.",
+    "hours": 3,
+    "skills": [
+      "Python"
+    ]
+  },
+  {
+    "date": "2026-02-02",
+    "workSummary": "Studied structured workflows and analyzed how tasks are broken down into smaller logical steps. Explored how systems automate repetitive tasks using predefined rules.",
+    "learningOutcomes": "Understood workflow structuring and task automation fundamentals.",
+    "hours": 3,
+    "skills": [
+      "Business operations and Strategy"
+    ]
+  },
+  {
+    "date": "2026-02-03",
+    "workSummary": "Explored problem-solving techniques using logical constructs and structured approaches. Practiced breaking complex problems into manageable components.",
+    "learningOutcomes": "Improved analytical thinking and structured problem-solving ability.",
+    "hours": 3,
+    "skills": [
+      "Python"
+    ]
+  },
+  {
+    "date": "2026-02-04",
+    "workSummary": "Focused on understanding system design at a basic level, including how data flows through different stages and how outputs are generated based on conditions.",
+    "learningOutcomes": "Learned how systems process inputs and generate outputs through logical conditions.",
+    "hours": 3,
+    "skills": [
+      "Database design"
+    ]
+  },
+  {
+    "date": "2026-02-05",
+    "workSummary": "Worked on programming fundamentals, including writing basic structured code and understanding syntax across multiple programming environments.",
+    "learningOutcomes": "Gained familiarity with coding structure and execution flow.",
+    "hours": 3,
+    "skills": [
+      "Python"
+    ]
+  },
+  {
+    "date": "2026-02-06",
+    "workSummary": "Studied variables, data types, and memory representation. Practiced storing and manipulating data using structured code examples.",
+    "learningOutcomes": "Understood how data is stored and processed within a program.",
+    "hours": 3,
+    "skills": [
+      "Python"
+    ]
+  },
+  {
+    "date": "2026-02-09",
+    "workSummary": "Worked on implementing operators and expressions to perform computations and logical evaluations within programs.",
+    "learningOutcomes": "Improved computational thinking and ability to evaluate expressions.",
+    "hours": 3,
+    "skills": [
+      "Python"
+    ]
+  },
+  {
+    "date": "2026-02-10",
+    "workSummary": "Studied control flow mechanisms such as conditional statements and branching logic for decision-making in programs.",
+    "learningOutcomes": "Learned how programs dynamically adjust execution based on conditions.",
+    "hours": 3,
+    "skills": [
+      "Python"
+    ]
+  },
+  {
+    "date": "2026-02-11",
+    "workSummary": "Implemented loops and iterative processes to handle repetitive tasks and improve efficiency in code execution.",
+    "learningOutcomes": "Understood how iteration reduces redundancy in programming.",
+    "hours": 3,
+    "skills": [
+      "Python"
+    ]
+  },
+  {
+    "date": "2026-02-12",
+    "workSummary": "Worked on functions and modular programming techniques to organize code into reusable components.",
+    "learningOutcomes": "Learned importance of modularity and code reusability.",
+    "hours": 3,
+    "skills": [
+      "Python"
+    ]
+  },
+  {
+    "date": "2026-02-13",
+    "workSummary": "Solved structured problems using previously learned concepts and practiced implementing logic across different scenarios.",
+    "learningOutcomes": "Strengthened problem-solving skills and logical reasoning.",
+    "hours": 3,
+    "skills": [
+      "Python"
+    ]
+  },
+  {
+    "date": "2026-02-16",
+    "workSummary": "Studied object-oriented programming concepts including classes, objects, and relationships between entities.",
+    "learningOutcomes": "Understood structured and scalable code design using OOP.",
+    "hours": 3,
+    "skills": [
+      "Java"
+    ]
+  },
+  {
+    "date": "2026-02-17",
+    "workSummary": "Explored advanced OOP concepts such as inheritance, polymorphism, and abstraction with practical examples.",
+    "learningOutcomes": "Learned how to design flexible and reusable software components.",
+    "hours": 3,
+    "skills": [
+      "Java"
+    ]
+  },
+  {
+    "date": "2026-02-18",
+    "workSummary": "Worked with data structures to organize and manage data efficiently within programs.",
+    "learningOutcomes": "Understood importance of choosing correct data structures for performance.",
+    "hours": 3,
+    "skills": [
+      "Java"
+    ]
+  },
+  {
+    "date": "2026-02-19",
+    "workSummary": "Designed simple real-world models using class-based programming and implemented relationships between objects.",
+    "learningOutcomes": "Improved ability to represent real-world entities in code.",
+    "hours": 3,
+    "skills": [
+      "Java"
+    ]
+  },
+  {
+    "date": "2026-02-20",
+    "workSummary": "Tested and debugged object-oriented programs and analyzed output behavior under different conditions.",
+    "learningOutcomes": "Learned debugging techniques and program validation methods.",
+    "hours": 3,
+    "skills": [
+      "Java"
+    ]
+  },
+  {
+    "date": "2026-03-02",
+    "workSummary": "Reviewed previously learned concepts and reinforced knowledge through practice exercises and revisions.",
+    "learningOutcomes": "Strengthened retention and understanding of core concepts.",
+    "hours": 3,
+    "skills": [
+      "Management Information System"
+    ]
+  },
+  {
+    "date": "2026-03-05",
+    "workSummary": "Explored productivity tools and workflow automation concepts to improve efficiency in handling tasks.",
+    "learningOutcomes": "Learned how automation tools enhance productivity and reduce manual effort.",
+    "hours": 3,
+    "skills": [
+      "Business operations and Strategy"
+    ]
+  },
+  {
+    "date": "2026-03-10",
+    "workSummary": "Studied user interface design fundamentals including layout structuring and user interaction flow.",
+    "learningOutcomes": "Understood how frontend design improves usability and accessibility.",
+    "hours": 3,
+    "skills": [
+      "UI/UX"
+    ]
+  },
+  {
+    "date": "2026-03-12",
+    "workSummary": "Worked on structured input-output systems and refined interaction methods for better system responses.",
+    "learningOutcomes": "Improved system interaction design and response optimization.",
+    "hours": 3,
+    "skills": [
+      "Data modeling"
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "workSummary": "Analyzed workflow-based systems and studied how automation integrates with real-world applications.",
+    "learningOutcomes": "Learned how workflows streamline processes in business systems.",
+    "hours": 3,
+    "skills": [
+      "Business Management"
+    ]
+  },
+  {
+    "date": "2026-04-01",
+    "workSummary": "Worked on designing structured workflows combining logic, automation, and system interaction principles.",
+    "learningOutcomes": "Improved understanding of system-level architecture and design.",
+    "hours": 3,
+    "skills": [
+      "DevOps"
+    ]
+  },
+  {
+    "date": "2026-04-02",
+    "workSummary": "Explored automation platforms and learned how multiple tools and services can be connected to execute workflows efficiently.",
+    "learningOutcomes": "Understood integration of systems for automation.",
+    "hours": 3,
+    "skills": [
+      "DevOps"
+    ]
+  },
+  {
+    "date": "2026-04-07",
+    "workSummary": "Worked on connecting frontend components with backend logic to enable complete system functionality.",
+    "learningOutcomes": "Learned basics of full-stack system integration.",
+    "hours": 3,
+    "skills": [
+      "JavaScript"
+    ]
+  },
+  {
+    "date": "2026-04-10",
+    "workSummary": "Studied design patterns and reusable solutions for common software design problems.",
+    "learningOutcomes": "Learned how design patterns improve scalability and maintainability.",
+    "hours": 3,
+    "skills": [
+      "Business Management"
+    ]
+  },
+  {
+    "date": "2026-04-15",
+    "workSummary": "Applied learned concepts to structured tasks and improved efficiency using assisted tools and optimized workflows.",
+    "learningOutcomes": "Improved productivity and execution efficiency.",
+    "hours": 3,
+    "skills": [
+      "Management Information System"
+    ]
+  },
+  {
+    "date": "2026-05-05",
+    "workSummary": "Worked on consolidating all learning modules into a structured understanding and began aligning concepts with project-level thinking.",
+    "learningOutcomes": "Learned how to connect multiple concepts into a unified system.",
+    "hours": 3,
+    "skills": [
+      "Operations Management"
+    ]
+  },
+  {
+    "date": "2026-05-12",
+    "workSummary": "Performed final refinements, reviewed workflows, and ensured consistency in understanding across all modules.",
+    "learningOutcomes": "Strengthened overall conceptual clarity and readiness for evaluation.",
+    "hours": 3,
+    "skills": [
+      "Management Information System"
+    ]
+  },
+  {
+    "date": "2026-05-19",
+    "workSummary": "Completed final review of internship tasks, documented learning outcomes, and prepared for submission and evaluation.",
+    "learningOutcomes": "Achieved a comprehensive understanding of the internship domain and its practical applications.",
+    "hours": 3,
+    "skills": [
+      "Business Management"
+    ]
+  }
+]

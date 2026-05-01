@@ -1,0 +1,11 @@
+VTU Diary Bot
+=============
+
+1. Double-click VTU-Diary-Bot.exe
+2. Paste your diary JSON in the UI or use Load File
+3. Choose browser (Chrome recommended)
+4. Click Preview, then Run Bot
+5. Log in to VTU in the browser window
+6. Let the bot complete the run
+
+Settings and last JSON are stored in %APPDATA%\VTU-Diary-Bot\

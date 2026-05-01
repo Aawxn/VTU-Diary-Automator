@@ -1,0 +1,9 @@
+{
+  "targetInternship": "",
+  "diaryUrl": "https://vtu.internyet.in/dashboard/student/student-diary",
+  "defaultHours": 3,
+  "headless": false,
+  "slowMo": 200,
+  "overwriteExisting": false,
+  "browserChannel": "chrome"
+}

@@ -1,0 +1,275 @@
+{
+  "internship": "Bharat Unnati AI Fellowship(CodeExpert + Expertpedia + GenAI + Agentic AI) - Leaner's Byte Global Info Vision",
+  "entries": [
+    {
+      "date": "2026-01-28",
+      "workSummary": "Started working on the Bharat Unnati AI Fellowship modules by exploring the fundamentals of Artificial Intelligence, including its scope, real-world applications, and role in modern systems. Reviewed structured learning materials and understood how AI systems are applied across domains.",
+      "learningOutcomes": "Developed a foundational understanding of Artificial Intelligence and its relevance in solving real-world problems.",
+      "hours": 3,
+      "skills": [
+        "Intelligent Machines"
+      ]
+    },
+    {
+      "date": "2026-01-29",
+      "workSummary": "Studied the core concepts of Generative AI and how modern AI systems generate structured outputs such as text and responses based on input prompts. Analyzed examples of AI-generated content.",
+      "learningOutcomes": "Learned how generative models produce outputs and how prompts influence responses.",
+      "hours": 3,
+      "skills": [
+        "Natural language processing"
+      ]
+    },
+    {
+      "date": "2026-01-30",
+      "workSummary": "Practiced prompt engineering techniques by experimenting with different input formats and observing variations in AI outputs. Focused on improving clarity and structure of prompts.",
+      "learningOutcomes": "Improved ability to design effective prompts for generating accurate and structured outputs.",
+      "hours": 3,
+      "skills": [
+        "Natural language processing"
+      ]
+    },
+    {
+      "date": "2026-02-02",
+      "workSummary": "Studied Agentic AI concepts including how autonomous agents execute tasks using defined workflows. Explored examples of task automation using AI systems.",
+      "learningOutcomes": "Understood how AI agents automate workflows and perform tasks independently.",
+      "hours": 3,
+      "skills": [
+        "Intelligent Machines"
+      ]
+    },
+    {
+      "date": "2026-02-03",
+      "workSummary": "Explored concepts such as MCP and RAG, focusing on how AI integrates external data sources to enhance response quality and accuracy.",
+      "learningOutcomes": "Learned how AI systems utilize external knowledge to improve output relevance.",
+      "hours": 3,
+      "skills": [
+        "Machine learning"
+      ]
+    },
+    {
+      "date": "2026-02-04",
+      "workSummary": "Analyzed AI agent architecture and workflow pipelines to understand how different components interact within an automated system.",
+      "learningOutcomes": "Gained insight into the design and functioning of intelligent AI systems.",
+      "hours": 3,
+      "skills": [
+        "Intelligent Machines"
+      ]
+    },
+    {
+      "date": "2026-02-05",
+      "workSummary": "Started CodeXpert module and practiced writing basic programs across multiple programming languages, focusing on syntax and execution flow.",
+      "learningOutcomes": "Learned fundamental programming structures and syntax rules.",
+      "hours": 3,
+      "skills": [
+        "Python"
+      ]
+    },
+    {
+      "date": "2026-02-06",
+      "workSummary": "Studied variables, data types, and memory handling concepts in programming. Implemented simple programs to understand data storage and manipulation.",
+      "learningOutcomes": "Understood how data is represented and managed in programs.",
+      "hours": 3,
+      "skills": [
+        "Python"
+      ]
+    },
+    {
+      "date": "2026-02-09",
+      "workSummary": "Worked with operators and expressions to perform logical and arithmetic operations within programs. Solved basic computational problems.",
+      "learningOutcomes": "Improved logical thinking and ability to evaluate expressions.",
+      "hours": 3,
+      "skills": [
+        "Python"
+      ]
+    },
+    {
+      "date": "2026-02-10",
+      "workSummary": "Studied control flow statements including if-else logic and decision-making constructs in programming.",
+      "learningOutcomes": "Learned how programs dynamically adapt based on conditions.",
+      "hours": 3,
+      "skills": [
+        "Python"
+      ]
+    },
+    {
+      "date": "2026-02-11",
+      "workSummary": "Implemented loops and iterative logic to handle repetitive operations efficiently in code.",
+      "learningOutcomes": "Understood iteration and its role in improving program efficiency.",
+      "hours": 3,
+      "skills": [
+        "Python"
+      ]
+    },
+    {
+      "date": "2026-02-12",
+      "workSummary": "Worked on functions and modular programming, focusing on reusability and structured code design.",
+      "learningOutcomes": "Learned importance of modular programming and function abstraction.",
+      "hours": 3,
+      "skills": [
+        "Python"
+      ]
+    },
+    {
+      "date": "2026-02-13",
+      "workSummary": "Practiced solving programming problems across different languages to understand logic portability and implementation differences.",
+      "learningOutcomes": "Enhanced problem-solving ability across multiple programming environments.",
+      "hours": 3,
+      "skills": [
+        "Python"
+      ]
+    },
+    {
+      "date": "2026-02-16",
+      "workSummary": "Studied Object Oriented Programming fundamentals including classes, objects, and relationships between entities.",
+      "learningOutcomes": "Learned structured programming using object-oriented concepts.",
+      "hours": 3,
+      "skills": [
+        "Java"
+      ]
+    },
+    {
+      "date": "2026-02-17",
+      "workSummary": "Explored OOP principles such as inheritance, polymorphism, and abstraction with practical examples.",
+      "learningOutcomes": "Understood scalable and reusable software design principles.",
+      "hours": 3,
+      "skills": [
+        "Java"
+      ]
+    },
+    {
+      "date": "2026-02-18",
+      "workSummary": "Worked with data structures such as arrays, lists, and maps to manage data efficiently within programs.",
+      "learningOutcomes": "Learned efficient data organization techniques.",
+      "hours": 3,
+      "skills": [
+        "Java"
+      ]
+    },
+    {
+      "date": "2026-02-19",
+      "workSummary": "Designed real-world models using class-based programming and implemented relationships between objects.",
+      "learningOutcomes": "Improved ability to map real-world entities into code structures.",
+      "hours": 3,
+      "skills": [
+        "Java"
+      ]
+    },
+    {
+      "date": "2026-02-20",
+      "workSummary": "Tested and debugged object-oriented programs to analyze behavior and ensure correctness.",
+      "learningOutcomes": "Learned debugging techniques and program validation.",
+      "hours": 3,
+      "skills": [
+        "Java"
+      ]
+    },
+    {
+      "date": "2026-03-05",
+      "workSummary": "Explored AI productivity tools such as Notion AI and studied how AI assists in automating content generation and workflows.",
+      "learningOutcomes": "Learned how AI tools improve efficiency and automate repetitive tasks.",
+      "hours": 3,
+      "skills": [
+        "Natural language processing"
+      ]
+    },
+    {
+      "date": "2026-03-10",
+      "workSummary": "Studied UI development fundamentals including HTML, CSS, JavaScript, and DOM manipulation for building user interfaces.",
+      "learningOutcomes": "Understood frontend development and user interaction design.",
+      "hours": 3,
+      "skills": [
+        "HTML"
+      ]
+    },
+    {
+      "date": "2026-03-12",
+      "workSummary": "Worked on advanced prompt engineering frameworks and structured input-output systems to improve AI-generated responses.",
+      "learningOutcomes": "Improved ability to control AI output using structured prompting techniques.",
+      "hours": 3,
+      "skills": [
+        "Natural language processing"
+      ]
+    },
+    {
+      "date": "2026-03-16",
+      "workSummary": "Attended session on Agentic AI CRM workflows and analyzed how AI integrates with business processes and automation systems.",
+      "learningOutcomes": "Understood real-world applications of AI in CRM and workflow automation.",
+      "hours": 3,
+      "skills": [
+        "Intelligent Machines"
+      ]
+    },
+    {
+      "date": "2026-03-18",
+      "workSummary": "Studied agentic workflows and market applications of AI automation systems across industries.",
+      "learningOutcomes": "Learned how AI-driven automation is applied in real-world business scenarios.",
+      "hours": 3,
+      "skills": [
+        "Machine learning"
+      ]
+    },
+    {
+      "date": "2026-04-01",
+      "workSummary": "Worked on designing AI-based workflows combining prompt engineering, structured logic, and system automation.",
+      "learningOutcomes": "Learned system-level design thinking for AI-based applications.",
+      "hours": 3,
+      "skills": [
+        "Intelligent Machines"
+      ]
+    },
+    {
+      "date": "2026-04-02",
+      "workSummary": "Explored workflow automation using n8n, including connecting APIs, triggers, and automation pipelines to execute tasks.",
+      "learningOutcomes": "Understood how n8n orchestrates workflows and integrates multiple services.",
+      "hours": 3,
+      "skills": [
+        "DevOps"
+      ]
+    },
+    {
+      "date": "2026-04-03",
+      "workSummary": "Implemented workflow logic combining AI prompts with automation tools to simulate task execution pipelines.",
+      "learningOutcomes": "Improved ability to design and execute automated workflows.",
+      "hours": 3,
+      "skills": [
+        "DevOps"
+      ]
+    },
+    {
+      "date": "2026-04-07",
+      "workSummary": "Worked on connecting frontend UI components with backend logic to build a complete system workflow.",
+      "learningOutcomes": "Learned full-stack integration concepts in AI systems.",
+      "hours": 3,
+      "skills": [
+        "JavaScript"
+      ]
+    },
+    {
+      "date": "2026-04-10",
+      "workSummary": "Studied design patterns such as MVC, Factory, and Observer to understand reusable software architecture.",
+      "learningOutcomes": "Learned how design patterns improve scalability and maintainability.",
+      "hours": 3,
+      "skills": [
+        "Business Management"
+      ]
+    },
+    {
+      "date": "2026-04-22",
+      "workSummary": "Worked on final project integrating AI, prompt engineering, and automation workflows into a unified system.",
+      "learningOutcomes": "Learned how to combine multiple technologies into a cohesive system.",
+      "hours": 3,
+      "skills": [
+        "Intelligent Machines"
+      ]
+    },
+    {
+      "date": "2026-05-19",
+      "workSummary": "Completed final review of internship work, consolidated all learnings, and prepared documentation for submission and evaluation.",
+      "learningOutcomes": "Achieved a comprehensive understanding of AI, automation, and workflow-based systems.",
+      "hours": 3,
+      "skills": [
+        "Intelligent Machines"
+      ]
+    }
+  ]
+}
