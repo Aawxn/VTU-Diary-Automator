@@ -3,6 +3,7 @@ import os
 import queue
 import sys
 import threading
+import time
 import tkinter as tk
 import webbrowser
 from pathlib import Path
@@ -48,6 +49,9 @@ class VTUBotUI:
         self.advanced_open = tk.BooleanVar(value=False)
         self.status_var = tk.StringVar(value="No data loaded yet. Load or paste your diary data.")
         self.entries_var = tk.StringVar(value="Entries detected: 0")
+        self.progress_var = tk.StringVar(value="Ready")
+        self.progress_value = tk.DoubleVar(value=0.0)
+        self.logs_window = None
 
         self.build_ui()
         self.load_shared_data()
@@ -131,9 +135,18 @@ class VTUBotUI:
         ttk.Button(actions, text="Preview", command=self.preview_entries, style="Secondary.TButton").pack(side="left", padx=8)
         ttk.Button(actions, text="Load previous data", command=self.load_shared_data, style="Secondary.TButton").pack(side="left")
         ttk.Button(actions, text="click me for gpt prompt", command=self.show_gpt_prompt, style="Secondary.TButton").pack(side="left", padx=8)
+        ttk.Button(actions, text="📋 Logs", command=self.show_logs_window, style="Secondary.TButton").pack(side="left")
         self.run_button_text = tk.StringVar(value="Run Bot")
         self.run_button = ttk.Button(actions, textvariable=self.run_button_text, command=self.run_bot, style="Primary.TButton")
         self.run_button.pack(side="right")
+
+        # Progress bar section
+        progress_frame = ttk.Frame(container, style="Card.TFrame", padding=12)
+        progress_frame.pack(fill="x", pady=(0, 12))
+        ttk.Label(progress_frame, text="Progress", style="Section.TLabel").pack(anchor="w", pady=(0, 6))
+        self.progress_bar = ttk.Progressbar(progress_frame, variable=self.progress_value, maximum=100, mode='determinate')
+        self.progress_bar.pack(fill="x", pady=(0, 6))
+        ttk.Label(progress_frame, textvariable=self.progress_var, style="Muted.TLabel").pack(anchor="w")
 
         status_row = ttk.Frame(container, style="App.TFrame")
         status_row.pack(fill="x", pady=(0, 8))
@@ -306,6 +319,79 @@ Allowed VTU Skills:
         ttk.Button(button_row, text="Copy Prompt", command=copy_prompt, style="Primary.TButton").pack(side="right")
         ttk.Button(button_row, text="Close", command=dialog.destroy, style="Secondary.TButton").pack(side="right", padx=(0, 8))
 
+    def show_logs_window(self):
+        """Show a dedicated logs window with all bot logs."""
+        if self.logs_window and tk.Toplevel.winfo_exists(self.logs_window):
+            self.logs_window.lift()
+            self.logs_window.focus()
+            return
+        
+        self.logs_window = tk.Toplevel(self.root)
+        self.logs_window.title("Bot Logs - VTU Diary Automator")
+        self.logs_window.configure(bg="#0b1220")
+        self.logs_window.geometry("1000x600")
+        
+        # Header
+        header = ttk.Frame(self.logs_window, style="Card.TFrame", padding=16)
+        header.pack(fill="x", pady=(0, 10))
+        ttk.Label(header, text="📋 Bot Execution Logs", font=("Segoe UI", 16, "bold"), background="#121a2b", foreground="#eef4ff").pack(anchor="w")
+        ttk.Label(header, text="Real-time logs from the bot execution", font=("Segoe UI", 10), background="#121a2b", foreground="#94a3b8").pack(anchor="w", pady=(4, 0))
+        
+        # Logs text area
+        logs_frame = ttk.Frame(self.logs_window, style="App.TFrame", padding=16)
+        logs_frame.pack(fill="both", expand=True)
+        
+        logs_text = ScrolledText(
+            logs_frame,
+            wrap="word",
+            bg="#060b16",
+            fg="#cbd5e1",
+            insertbackground="#cbd5e1",
+            relief="flat",
+            bd=0,
+            padx=12,
+            pady=12,
+            font=("Consolas", 9)
+        )
+        logs_text.pack(fill="both", expand=True)
+        
+        # Copy current logs
+        current_logs = self.log_text.get("1.0", "end")
+        logs_text.insert("1.0", current_logs)
+        logs_text.see("end")
+        
+        # Store reference for updates
+        self.logs_window_text = logs_text
+        
+        # Buttons
+        button_frame = ttk.Frame(self.logs_window, style="App.TFrame", padding=16)
+        button_frame.pack(fill="x")
+        
+        def copy_logs():
+            self.root.clipboard_clear()
+            self.root.clipboard_append(logs_text.get("1.0", "end"))
+            messagebox.showinfo("Copied", "Logs copied to clipboard!")
+        
+        def clear_logs():
+            logs_text.delete("1.0", "end")
+            self.log_text.delete("1.0", "end")
+        
+        def save_logs():
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                initialfile=f"vtu_bot_logs_{time.strftime('%Y%m%d_%H%M%S')}.txt"
+            )
+            if file_path:
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(logs_text.get("1.0", "end"))
+                messagebox.showinfo("Saved", f"Logs saved to:\n{file_path}")
+        
+        ttk.Button(button_frame, text="Copy Logs", command=copy_logs, style="Secondary.TButton").pack(side="left", padx=(0, 8))
+        ttk.Button(button_frame, text="Save to File", command=save_logs, style="Secondary.TButton").pack(side="left", padx=(0, 8))
+        ttk.Button(button_frame, text="Clear Logs", command=clear_logs, style="Secondary.TButton").pack(side="left")
+        ttk.Button(button_frame, text="Close", command=self.logs_window.destroy, style="Primary.TButton").pack(side="right")
+
     def open_repo(self):
         webbrowser.open(REPO_URL, new=2)
         self.append_log(f"Opened GitHub repo: {REPO_URL}")
@@ -319,12 +405,27 @@ Allowed VTU Skills:
             if kind == "log":
                 self.log_text.insert("end", payload + "\n")
                 self.log_text.see("end")
+                # Also update logs window if open
+                if self.logs_window and hasattr(self, 'logs_window_text'):
+                    try:
+                        self.logs_window_text.insert("end", payload + "\n")
+                        self.logs_window_text.see("end")
+                    except:
+                        pass
             elif kind == "preview":
                 self.preview_text.delete("1.0", "end")
                 self.preview_text.insert("1.0", payload)
+            elif kind == "progress":
+                # Update progress bar and status
+                current, total, entry_date = payload
+                progress_pct = (current / total * 100) if total > 0 else 0
+                self.progress_value.set(progress_pct)
+                self.progress_var.set(f"Processing entry {current}/{total}: {entry_date}")
         if self.active_thread and not self.active_thread.is_alive():
             self.active_thread = None
             self.run_button_text.set("Run Bot")
+            self.progress_var.set("Ready")
+            self.progress_value.set(0)
         self.root.after(120, self.poll_logs)
 
     def current_payload(self):
@@ -500,11 +601,17 @@ Allowed VTU Skills:
         def worker():
             try:
                 bot_core.set_log_sink(self.append_log)
+                
+                # Progress callback
+                def progress_update(current, total, entry_date):
+                    self.log_queue.put(("progress", (current, total, entry_date)))
+                
                 results = bot_core.run_bot(
                     config_override=config,
                     entries_override=entries,
                     require_confirmation=False,
                     chooser_callback=self.choose_internship_gui,
+                    progress_callback=progress_update,
                 )
                 if results:
                     s, sk, f = results["saved"], results["skipped"], results["failed"]

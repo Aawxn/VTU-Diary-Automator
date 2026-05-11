@@ -71,6 +71,13 @@ SKILL_ALIASES = {
 LOG_SINK = None
 STOP_EVENT = threading.Event()
 
+# Session state tracking for timeout detection and recovery
+_session_state = {
+    "last_auth_check": 0,  # timestamp
+    "consecutive_timeouts": 0,  # counter for exponential backoff
+    "pending_retry_entry": None,  # entry that needs retry after reauth
+}
+
 
 class BotStopped(Exception):
     pass
@@ -103,6 +110,148 @@ def log(message: str) -> None:
             LOG_SINK(line)
         except Exception:
             pass
+
+
+def log_with_context(message: str, context: dict = None) -> None:
+    """Log message with structured context data for better debugging."""
+    if context:
+        context_str = " | ".join(f"{k}={v}" for k, v in context.items() if v is not None)
+        log(f"{message} [{context_str}]")
+    else:
+        log(message)
+
+
+def wait_for_page_stable(page, stability_duration_ms=500, timeout_ms=10000):
+    """
+    Wait until the page DOM is stable (no major changes) for the specified duration.
+    
+    Args:
+        page: Playwright page object
+        stability_duration_ms: How long the page must be stable (default 500ms)
+        timeout_ms: Maximum time to wait (default 10 seconds)
+    
+    Raises:
+        TimeoutError: If page doesn't stabilize within timeout
+    """
+    deadline = time.time() + (timeout_ms / 1000)
+    last_change = time.time()
+    last_url = ""
+    
+    while time.time() < deadline:
+        ensure_not_stopped()
+        current_url = page.url or ""
+        
+        # Check if URL changed (indicates navigation)
+        if current_url != last_url:
+            last_url = current_url
+            last_change = time.time()
+        
+        # Check if we've been stable long enough
+        stable_duration = (time.time() - last_change) * 1000
+        if stable_duration >= stability_duration_ms:
+            return
+        
+        page.wait_for_timeout(100)
+    
+    raise TimeoutError(f"Page did not stabilize within {timeout_ms}ms")
+
+
+def wait_for_network_idle(page, timeout_ms=30000):
+    """
+    Wait until network activity ceases (no requests for 500ms).
+    
+    Args:
+        page: Playwright page object
+        timeout_ms: Maximum time to wait (default 30 seconds)
+    
+    Raises:
+        TimeoutError: If network doesn't idle within timeout
+    """
+    try:
+        page.wait_for_load_state("networkidle", timeout=timeout_ms)
+    except Exception as error:
+        log(f"Network idle wait timed out: {error}")
+        # Don't raise - continue anyway as page might be usable
+
+
+def detect_session_state(page):
+    """
+    Determine current session authentication state.
+    
+    Args:
+        page: Playwright page object
+    
+    Returns:
+        One of: "authenticated", "logged_out", "unknown"
+    """
+    try:
+        url = (page.url or "").lower()
+        
+        # Check for login/signin patterns in URL
+        if any(pattern in url for pattern in ["/login", "/signin", "/auth", "/sign-in"]):
+            return "logged_out"
+        
+        # Check for authenticated page patterns
+        if any(pattern in url for pattern in ["/dashboard", "/student", "/diary"]):
+            # Verify we're not on a login page with these keywords
+            try:
+                # Check for login form elements
+                if page.locator("input[type='password']").count() > 0:
+                    return "logged_out"
+                # Check for authenticated elements
+                if page.locator("a[href*='logout' i], button:has-text('Logout')").count() > 0:
+                    return "authenticated"
+                # If we see diary-related elements, we're authenticated
+                if page.locator("select[name*='intern' i], textarea#description").count() > 0:
+                    return "authenticated"
+            except Exception:
+                pass
+            
+            return "authenticated"
+        
+        return "unknown"
+    except Exception as error:
+        log(f"Session state detection error: {error}")
+        return "unknown"
+
+
+def is_logged_in(page):
+    """Quick check if currently authenticated."""
+    return detect_session_state(page) == "authenticated"
+
+
+def wait_for_reauth(page, timeout_ms=120000):
+    """
+    Wait for automatic re-authentication to complete.
+    
+    Args:
+        page: Playwright page object
+        timeout_ms: Maximum time to wait (default 2 minutes)
+    
+    Returns:
+        True if re-authentication succeeded, False if timeout
+    """
+    log("Waiting for automatic re-authentication...")
+    deadline = time.time() + (timeout_ms / 1000)
+    check_interval = 2.0  # Check every 2 seconds
+    
+    while time.time() < deadline:
+        ensure_not_stopped()
+        state = detect_session_state(page)
+        
+        if state == "authenticated":
+            log("Re-authentication detected, waiting for stabilization...")
+            page.wait_for_timeout(3000)  # Wait 3 seconds for session to stabilize
+            log("Session re-authenticated successfully")
+            return True
+        
+        remaining = deadline - time.time()
+        if remaining > 0:
+            wait_time = min(check_interval, remaining)
+            page.wait_for_timeout(int(wait_time * 1000))
+    
+    log("Re-authentication timeout - session did not recover")
+    return False
 
 
 def load_json(path: Path):
@@ -251,73 +400,199 @@ def retry(description, fn, attempts=3, delay=1.0):
     raise last_error
 
 
-def detect_page(page):
-    url = (page.url or "").lower()
+def detect_page(page, require_interactive=False):
+    """
+    Enhanced page detection with stability checks and error handling.
+    
+    Args:
+        page: Playwright page object
+        require_interactive: If True, verify controls are interactive
+    
+    Returns:
+        Page type string or "unknown" if detection fails
+    """
+    try:
+        url = (page.url or "").lower()
 
-    def heading_contains(text):
-        try:
-            return page.locator("h1, h2").filter(has_text=text).count() > 0
-        except Exception:
-            return False
+        def heading_contains(text):
+            try:
+                return page.locator("h1, h2").filter(has_text=text).count() > 0
+            except Exception:
+                return False
 
-    def selector_exists(selector):
-        try:
-            return page.locator(selector).count() > 0
-        except Exception:
-            return False
+        def selector_exists(selector):
+            try:
+                return page.locator(selector).count() > 0
+            except Exception:
+                return False
+        
+        def is_interactive(selector):
+            """Check if element is interactive (visible and enabled)."""
+            try:
+                locator = page.locator(selector).first
+                if locator.count() == 0:
+                    return False
+                return locator.is_visible() and locator.is_enabled()
+            except Exception:
+                return False
 
-    if "/edit-diary-entry/" in url:
-        return "edit-entry"
+        # URL-based detection (most reliable)
+        if "/edit-diary-entry/" in url:
+            return "edit-entry"
 
-    if "/dashboard/student/diary-entries" in url:
-        return "diary-entries"
+        if "/dashboard/student/diary-entries" in url:
+            return "diary-entries"
 
-    if "/dashboard/student/create-diary-entry" in url:
-        return "form"
+        if "/dashboard/student/create-diary-entry" in url:
+            return "form"
 
-    if "/dashboard/student/student-diary" in url:
+        if "/dashboard/student/student-diary" in url:
+            # Check if we're on the form page (has textarea)
+            if heading_contains("Create Internship Diary Entry") or selector_exists("textarea#description"):
+                return "form"
+            
+            # Debug logging for student-diary detection
+            log(f"DEBUG detect_page: url={url}, require_interactive={require_interactive}")
+            has_intern_select = selector_exists("select[name*='intern' i]") or selector_exists("select[id*='intern' i]")
+            has_date_input = selector_exists("input[placeholder*='Pick a Date' i]") or selector_exists("input[id*='date' i]")
+            log(f"DEBUG: intern_select_exists={has_intern_select}, date_input_exists={has_date_input}")
+            
+            # If require_interactive, verify controls are ready
+            if require_interactive:
+                intern_interactive = is_interactive("select[name*='intern' i]") or is_interactive("select[id*='intern' i]")
+                date_interactive = is_interactive("input[placeholder*='Pick a Date' i]") or is_interactive("input[id*='date' i]")
+                log(f"DEBUG: intern_interactive={intern_interactive}, date_interactive={date_interactive}")
+                
+                if not intern_interactive:
+                    log("DEBUG: Internship control not interactive, waiting...")
+                    page.wait_for_timeout(2000)
+                    # Try again after wait
+                    intern_interactive = is_interactive("select[name*='intern' i]") or is_interactive("select[id*='intern' i]")
+                    log(f"DEBUG: After wait, intern_interactive={intern_interactive}")
+                    
+                    if not intern_interactive:
+                        # URL matches but controls not ready - trust the URL
+                        log("DEBUG: Controls not interactive but URL matches - returning student-diary")
+                        return "student-diary"
+                
+                if not date_interactive:
+                    log("DEBUG: Date control not interactive but URL matches - returning student-diary")
+                    return "student-diary"
+            
+            return "student-diary"
+
+        # Content-based detection (fallback)
+        if heading_contains("Edit Internship Diary Entry"):
+            return "edit-entry"
+
         if heading_contains("Create Internship Diary Entry") or selector_exists("textarea#description"):
             return "form"
-        return "student-diary"
 
-    if heading_contains("Edit Internship Diary Entry"):
-        return "edit-entry"
+        if heading_contains("Internship Diary Entries") and (
+            selector_exists("a[href*='/dashboard/student/student-diary']")
+            or selector_exists("table")
+        ):
+            return "diary-entries"
 
-    if heading_contains("Create Internship Diary Entry") or selector_exists("textarea#description"):
-        return "form"
+        if heading_contains("Internship Diary") and (
+            heading_contains("Select Internship & Date")
+            or selector_exists("select[name*='intern' i], select[id*='intern' i], [role='combobox']")
+        ):
+            if require_interactive:
+                if not is_interactive("select[name*='intern' i], select[id*='intern' i]"):
+                    # Give it more time
+                    page.wait_for_timeout(2000)
+                    if not is_interactive("select[name*='intern' i], select[id*='intern' i]"):
+                        return "unknown"
+            return "student-diary"
 
-    if heading_contains("Internship Diary Entries") and (
-        selector_exists("a[href*='/dashboard/student/student-diary']")
-        or selector_exists("table")
-    ):
-        return "diary-entries"
+        if heading_contains("Select Internship & Date") or selector_exists(
+            "select[name*='intern' i], select[id*='intern' i], input[placeholder*='Pick a Date' i]"
+        ):
+            if require_interactive:
+                if not is_interactive("select[name*='intern' i], select[id*='intern' i]"):
+                    # Give it more time
+                    page.wait_for_timeout(2000)
+                    if not is_interactive("select[name*='intern' i], select[id*='intern' i]"):
+                        return "unknown"
+            return "student-diary"
 
-    if heading_contains("Internship Diary") and (
-        heading_contains("Select Internship & Date")
-        or selector_exists("select[name*='intern' i], select[id*='intern' i], [role='combobox']")
-    ):
-        return "student-diary"
-
-    if heading_contains("Select Internship & Date") or selector_exists(
-        "select[name*='intern' i], select[id*='intern' i], input[placeholder*='Pick a Date' i]"
-    ):
-        return "student-diary"
-
-    return "unknown"
+        return "unknown"
+    except Exception as error:
+        log(f"Page detection error: {error}")
+        return "unknown"
 
 
-def wait_for_page(page, expected_pages, timeout=15000):
+def wait_for_page(page, expected_pages, timeout=15000, check_interval=250, require_stability=False):
+    """
+    Enhanced wait for page with stability checking and better logging.
+    
+    Args:
+        page: Playwright page object
+        expected_pages: List of acceptable page types
+        timeout: Maximum wait time in milliseconds
+        check_interval: How often to check page type (milliseconds)
+        require_stability: Whether to wait for DOM stability before detection
+    
+    Returns:
+        The detected page type
+    
+    Raises:
+        TimeoutError: If expected page not reached within timeout
+    """
     deadline = time.time() + (timeout / 1000)
     expected = set(expected_pages)
     last_seen = "unknown"
     last_url = ""
+    attempt_count = 0
+    
+    log_with_context("Waiting for page", {
+        "expected": ", ".join(expected_pages),
+        "timeout_ms": timeout
+    })
+    
     while time.time() < deadline:
         ensure_not_stopped()
+        attempt_count += 1
         last_url = page.url
-        last_seen = detect_page(page)
+        
+        # Wait for stability if required
+        if require_stability and attempt_count == 1:
+            try:
+                wait_for_page_stable(page, stability_duration_ms=500, timeout_ms=5000)
+            except TimeoutError:
+                log("Page stability timeout, continuing anyway")
+        
+        # Detect page type
+        last_seen = detect_page(page, require_interactive=require_stability)
+        
         if last_seen in expected:
+            log_with_context("Page detected", {
+                "page_type": last_seen,
+                "url": last_url,
+                "attempts": attempt_count
+            })
             return last_seen
-        page.wait_for_timeout(250)
+        
+        # Log slow page loads
+        elapsed = (time.time() - (deadline - timeout / 1000)) * 1000
+        if elapsed > 10000 and attempt_count % 20 == 0:  # Log every 5 seconds after 10s
+            remaining = (deadline - time.time()) * 1000
+            log_with_context("Still waiting for page", {
+                "elapsed_ms": int(elapsed),
+                "remaining_ms": int(remaining),
+                "last_seen": last_seen
+            })
+        
+        page.wait_for_timeout(check_interval)
+    
+    # Timeout occurred
+    log_with_context("Page wait timeout", {
+        "expected": ", ".join(expected_pages),
+        "last_seen": last_seen,
+        "url": last_url,
+        "timeout_ms": timeout
+    })
     raise TimeoutError(
         f"Timed out waiting for pages: {', '.join(expected_pages)} (last_seen={last_seen}, url={last_url})"
     )
@@ -458,17 +733,49 @@ def confirm_run(entries, config):
 def login(page, config):
     diary_url = config["diaryUrl"]
 
-    log("Opening VTU portal")
-    page.goto(diary_url, wait_until="domcontentloaded")
-    page.wait_for_timeout(1200)
-
-    if detect_page(page) in {"student-diary", "diary-entries", "form", "edit-entry"}:
-        log("Already logged in")
-        return
+    log_with_context("Opening VTU portal", {"url": diary_url})
+    
+    # Use networkidle for better page load detection
+    try:
+        page.goto(diary_url, wait_until="networkidle", timeout=30000)
+    except Exception as error:
+        log(f"Network idle timeout during goto, continuing: {error}")
+        page.goto(diary_url, wait_until="domcontentloaded", timeout=30000)
+    
+    # Wait longer for initial page load
+    page.wait_for_timeout(3000)
+    
+    # Wait for page stability before detecting
+    try:
+        wait_for_page_stable(page, stability_duration_ms=500, timeout_ms=5000)
+    except TimeoutError:
+        log("Initial page stability timeout, continuing")
+    
+    # Check if already logged in with retry logic
+    for attempt in range(1, 4):
+        page_type = detect_page(page)
+        if page_type in {"student-diary", "diary-entries", "form", "edit-entry"}:
+            log("Already logged in")
+            return
+        if page_type != "unknown":
+            break
+        if attempt < 3:
+            log(f"Page detection attempt {attempt} returned unknown, retrying...")
+            page.wait_for_timeout(2000)
 
     log("Manual login required. Complete VTU login in the opened browser window.")
-    wait_for_page(page, ["student-diary", "diary-entries", "form", "edit-entry"], timeout=300000)
-    page.wait_for_timeout(1000)
+    
+    # Use longer check intervals during manual login (2 seconds instead of 250ms)
+    wait_for_page(
+        page, 
+        ["student-diary", "diary-entries", "form", "edit-entry"], 
+        timeout=300000,
+        check_interval=2000,
+        require_stability=False
+    )
+    
+    # Wait for post-login stabilization
+    page.wait_for_timeout(2000)
     log("Login detected. Continuing automation.")
 
 
@@ -521,9 +828,36 @@ def pick_internship_option(options, internship_name):
 
     if internship_name:
         target = normalize_text(internship_name)
+        
+        # Try exact match first
+        for option in options:
+            if target == option["text"]:
+                return option
+        
+        # Try substring match (both directions)
         for option in options:
             if target in option["text"] or option["text"] in target:
                 return option
+        
+        # Try fuzzy match - check if significant words match
+        target_words = set(target.split())
+        best_match = None
+        best_score = 0
+        
+        for option in options:
+            option_words = set(option["text"].split())
+            # Count matching words
+            matching_words = target_words & option_words
+            score = len(matching_words)
+            
+            # If we have at least 3 matching words, consider it
+            if score >= 3 and score > best_score:
+                best_score = score
+                best_match = option
+        
+        if best_match:
+            return best_match
+        
         return None
 
     if len(options) == 1:
@@ -536,19 +870,27 @@ def pick_internship_option(options, internship_name):
 
 def resolve_entries_internship(page, entries, config, prompt_fn=input, chooser_callback=None):
     if all(entry["internship"] for entry in entries):
+        log("All entries have internship specified, skipping resolution")
         return entries
 
     configured = (config.get("targetInternship") or "").strip()
     if configured:
+        log(f"Using configured internship: {configured}")
         for entry in entries:
             if not entry["internship"]:
                 entry["internship"] = configured
         return entries
 
     log("Resolving internship choice for entries without explicit internship")
-    page.goto(config["diaryUrl"], wait_until="domcontentloaded")
-    page.wait_for_timeout(1200)
-    wait_for_page(page, ["student-diary"], timeout=20000)
+    
+    # Use enhanced navigation with better timeouts
+    try:
+        page.goto(config["diaryUrl"], wait_until="networkidle", timeout=30000)
+    except Exception:
+        page.goto(config["diaryUrl"], wait_until="domcontentloaded", timeout=30000)
+    
+    page.wait_for_timeout(2000)
+    wait_for_page(page, ["student-diary"], timeout=25000, require_stability=True)
 
     select_locator = get_internship_select(page)
     options = get_internship_options(select_locator)
@@ -557,8 +899,10 @@ def resolve_entries_internship(page, entries, config, prompt_fn=input, chooser_c
 
     if len(options) == 1:
         selected_label = options[0]["label"]
+        log(f"Only one internship option found: {selected_label}")
     else:
         labels = [option["label"] for option in options]
+        log(f"Multiple internship options found: {len(labels)}")
         if chooser_callback:
             selected_label = chooser_callback(labels)
         else:
@@ -577,19 +921,38 @@ def select_internship(page, internship_name):
     log(f"Selecting internship: {internship_name or '[auto-detect if only one option]'}")
     select_locator = get_internship_select(page)
     options = get_internship_options(select_locator)
+    
     if not options:
         raise RuntimeError("No internship options found")
+    
+    # Debug: Log available options
+    log(f"DEBUG: Found {len(options)} internship options:")
+    for idx, opt in enumerate(options, 1):
+        log(f"DEBUG:   {idx}. label='{opt['label']}' | text='{opt['text']}'")
 
     selected_option = pick_internship_option(options, internship_name)
     if not selected_option:
+        log(f"DEBUG: Failed to match internship. Target normalized: '{normalize_text(internship_name)}'")
         raise RuntimeError(f'Internship "{internship_name}" was not found')
 
+    log(f"DEBUG: Selected option: label='{selected_option['label']}' | value='{selected_option['value']}'")
     select_locator.select_option(value=selected_option["value"])
     page.wait_for_timeout(250)
 
 
 def select_date(page, iso_date):
-    log(f"Selecting date: {iso_date}")
+    """
+    Select date in the date picker with auto-detection of month indexing.
+    Enhanced version with robust fallback logic.
+    """
+    log_with_context("Selecting date", {"iso_date": iso_date})
+    
+    # Parse ISO date
+    year_value = iso_date[:4]
+    month_num = int(iso_date[5:7])  # 1-12
+    day_value = str(int(iso_date[8:10]))
+    
+    # Find and click date picker trigger
     trigger = find_first_locator(
         page,
         [
@@ -605,36 +968,84 @@ def select_date(page, iso_date):
     trigger.click()
     page.wait_for_timeout(300)
 
-    month_value = str(int(iso_date[5:7]))
-    day_value = str(int(iso_date[8:10]))
-    year_value = iso_date[:4]
-
+    # Detect month indexing scheme
     month_select = page.locator(".rdp-root select").nth(0)
     year_select = page.locator(".rdp-root select").nth(1)
+    
+    indexing_scheme = "zero-based"  # Default assumption
+    if month_select.count():
+        try:
+            options = month_select.locator("option").all()
+            if len(options) > 0:
+                first_value = options[0].get_attribute("value")
+                # If first option is "1", it's 1-based; if "0", it's 0-based
+                if first_value == "1":
+                    indexing_scheme = "one-based"
+                elif first_value == "0":
+                    indexing_scheme = "zero-based"
+                else:
+                    # Check if we have 12 options (1-12) or 12 options (0-11)
+                    if len(options) == 12:
+                        last_value = options[-1].get_attribute("value")
+                        if last_value == "11":
+                            indexing_scheme = "zero-based"
+                        elif last_value == "12":
+                            indexing_scheme = "one-based"
+        except Exception as error:
+            log(f"Could not detect month indexing, using default: {error}")
+    
+    # Convert month based on detected scheme
+    if indexing_scheme == "zero-based":
+        month_value = str(month_num - 1)  # Convert 1-12 to 0-11
+    else:
+        month_value = str(month_num)  # Keep as 1-12
+    
+    log_with_context("Date picker indexing", {
+        "scheme": indexing_scheme,
+        "month_input": month_num,
+        "month_value": month_value,
+        "year": year_value,
+        "day": day_value
+    })
+
+    # Select year and month
     if month_select.count():
         month_select.select_option(value=month_value)
     if year_select.count():
         year_select.select_option(value=year_value)
     page.wait_for_timeout(250)
 
+    # Try multiple data-day format patterns
     data_day_candidates = [
-        f"{int(month_value)}/{int(day_value)}/{year_value}",
-        f"{month_value}/{day_value}/{year_value}",
+        f"{month_num}/{int(day_value)}/{year_value}",  # 1/15/2024
+        f"{int(month_value)}/{int(day_value)}/{year_value}",  # 0/15/2024 or 1/15/2024
+        f"{month_value}/{day_value}/{year_value}",  # "0/15/2024" or "1/15/2024"
+        f"{month_num}/{day_value}/{year_value}",  # "1/15/2024"
     ]
+    
     for candidate in data_day_candidates:
-        day_button = page.locator(f".rdp-root [data-day='{candidate}']").first
-        if day_button.count():
-            day_button.click()
+        try:
+            day_button = page.locator(f".rdp-root [data-day='{candidate}']").first
+            if day_button.count():
+                log(f"Found day button with data-day='{candidate}'")
+                day_button.click()
+                page.wait_for_timeout(250)
+                return
+        except Exception:
+            continue
+
+    # Fallback: try to find button by text
+    try:
+        exact_day = page.locator(".rdp-root button").filter(has_text=day_value)
+        if exact_day.count():
+            log(f"Found day button by text: {day_value}")
+            exact_day.first.click()
             page.wait_for_timeout(250)
             return
+    except Exception:
+        pass
 
-    exact_day = page.locator(".rdp-root button").filter(has_text=day_value)
-    if exact_day.count():
-        exact_day.first.click()
-        page.wait_for_timeout(250)
-        return
-
-    raise RuntimeError(f"Could not select date {iso_date}")
+    raise RuntimeError(f"Could not select date {iso_date} (tried {len(data_day_candidates)} formats)")
 
 
 def find_work_summary_field(page):
@@ -854,17 +1265,72 @@ def fill_form(page, entry):
 
 
 def recover_page_once(page, config, reason, entry_date):
-    log(f"Recovery reload for {entry_date}: {reason}")
-    page.goto(config["diaryUrl"], wait_until="domcontentloaded")
-    page.wait_for_timeout(1200)
-    wait_for_page(page, ["student-diary"], timeout=20000)
+    log_with_context("Recovery reload", {"entry_date": entry_date, "reason": reason})
+    
+    # Check if this might be a session timeout
+    session_state = detect_session_state(page)
+    if session_state == "logged_out":
+        log("Session timeout detected during recovery")
+        if wait_for_reauth(page, timeout_ms=120000):
+            log("Session recovered, continuing")
+        else:
+            raise RuntimeError("Session timeout: could not recover authentication")
+    
+    # Standard recovery: reload the page
+    try:
+        page.goto(config["diaryUrl"], wait_until="networkidle", timeout=30000)
+    except Exception:
+        page.goto(config["diaryUrl"], wait_until="domcontentloaded", timeout=30000)
+    
+    page.wait_for_timeout(2000)
+    wait_for_page(page, ["student-diary"], timeout=25000, require_stability=True)
 
 
 def upload_entry(page, entry, config):
-    log(f"Uploading entry for {entry['date']}")
-    page.goto(config["diaryUrl"], wait_until="domcontentloaded")
-    page.wait_for_timeout(1200)
-    wait_for_page(page, ["student-diary"], timeout=20000)
+    log_with_context("Uploading entry", {"date": entry['date']})
+    
+    # Check session state before starting
+    session_state = detect_session_state(page)
+    if session_state == "logged_out":
+        log("Session timeout detected before upload")
+        if not wait_for_reauth(page, timeout_ms=120000):
+            raise RuntimeError("Session timeout: could not recover authentication")
+        _session_state["consecutive_timeouts"] += 1
+    else:
+        _session_state["consecutive_timeouts"] = 0
+    
+    # Navigate to student diary page with better timeout
+    try:
+        page.goto(config["diaryUrl"], wait_until="networkidle", timeout=30000)
+    except Exception as error:
+        log(f"Network idle timeout, using domcontentloaded: {error}")
+        page.goto(config["diaryUrl"], wait_until="domcontentloaded", timeout=30000)
+    
+    page.wait_for_timeout(2000)
+    
+    # Wait for student-diary page with stability check
+    try:
+        wait_for_page(page, ["student-diary"], timeout=25000, require_stability=True)
+    except TimeoutError as error:
+        # Check if session timed out
+        if detect_session_state(page) == "logged_out":
+            log("Session timeout detected during navigation")
+            _session_state["pending_retry_entry"] = entry
+            if wait_for_reauth(page, timeout_ms=120000):
+                # Apply exponential backoff
+                backoff_delays = [5, 10, 20]
+                delay = backoff_delays[min(_session_state["consecutive_timeouts"], len(backoff_delays) - 1)]
+                log(f"Applying exponential backoff: {delay}s")
+                page.wait_for_timeout(delay * 1000)
+                _session_state["consecutive_timeouts"] += 1
+                # Retry navigation
+                page.goto(config["diaryUrl"], wait_until="domcontentloaded", timeout=30000)
+                page.wait_for_timeout(2000)
+                wait_for_page(page, ["student-diary"], timeout=25000, require_stability=True)
+            else:
+                raise RuntimeError("Session timeout: could not recover authentication")
+        else:
+            raise
 
     try:
         select_internship(page, entry.get("internship") or config.get("targetInternship", ""))
@@ -885,6 +1351,11 @@ def upload_entry(page, entry, config):
     try:
         next_page = wait_for_page(page, ["form", "edit-entry"], timeout=15000)
     except Exception as error:
+        # Check for session timeout
+        if detect_session_state(page) == "logged_out":
+            log("Session timeout during form transition")
+            _session_state["pending_retry_entry"] = entry
+            raise RuntimeError("Session timeout during form transition")
         recover_page_once(page, config, f"Continue transition failed: {error}", entry["date"])
         raise
 
@@ -906,10 +1377,15 @@ def upload_entry(page, entry, config):
         raise RuntimeError("Save did not advance away from the diary form")
 
     page.wait_for_timeout(900)
+    
+    # Clear pending retry on success
+    if _session_state["pending_retry_entry"] == entry:
+        _session_state["pending_retry_entry"] = None
+    
     return "saved"
 
 
-def run_bot(config_override=None, entries_override=None, require_confirmation=True, prompt_fn=input, chooser_callback=None):
+def run_bot(config_override=None, entries_override=None, require_confirmation=True, prompt_fn=input, chooser_callback=None, progress_callback=None):
     config = load_config()
     if config_override:
         config.update(config_override)
@@ -917,7 +1393,34 @@ def run_bot(config_override=None, entries_override=None, require_confirmation=Tr
     entries = entries_override if entries_override is not None else load_entries(config)
     clear_stop_request()
 
-    log(f"Loaded {len(entries)} entries from shared/data.json")
+    log(f"Loaded {len(entries)} entries from data")
+    
+    # Validation: Check all entries have required fields and valid dates
+    log("Validating entries...")
+    for idx, entry in enumerate(entries, 1):
+        # Validate date format
+        try:
+            date_parts = entry['date'].split('-')
+            if len(date_parts) != 3:
+                raise ValueError(f"Invalid date format")
+            year, month, day = int(date_parts[0]), int(date_parts[1]), int(date_parts[2])
+            if not (1 <= month <= 12):
+                raise ValueError(f"Month must be between 1-12, got {month}")
+            if not (1 <= day <= 31):
+                raise ValueError(f"Day must be between 1-31, got {day}")
+        except Exception as e:
+            raise ValueError(f"Entry {idx}: Invalid date '{entry['date']}' - {e}")
+        
+        # Validate required fields
+        if not entry.get('workSummary'):
+            raise ValueError(f"Entry {idx} ({entry['date']}): Missing workSummary")
+        if not entry.get('learningOutcomes'):
+            raise ValueError(f"Entry {idx} ({entry['date']}): Missing learningOutcomes")
+        if not entry.get('skills') or len(entry['skills']) == 0:
+            raise ValueError(f"Entry {idx} ({entry['date']}): Missing skills")
+    
+    log(f"✓ All {len(entries)} entries validated successfully")
+    
     if require_confirmation and not confirm_run(entries, config):
         return None
 
@@ -938,11 +1441,22 @@ def run_bot(config_override=None, entries_override=None, require_confirmation=Tr
 
         try:
             login(page, config)
+            log("Login complete, resolving internship for entries...")
             entries = resolve_entries_internship(page, entries, config, prompt_fn=prompt_fn, chooser_callback=chooser_callback)
+            log(f"Starting to process {len(entries)} entries...")
 
-            for entry in entries:
+            for idx, entry in enumerate(entries, 1):
                 ensure_not_stopped()
+                
+                # Send progress update
+                if progress_callback:
+                    try:
+                        progress_callback(idx, len(entries), entry['date'])
+                    except:
+                        pass
+                
                 try:
+                    log_with_context(f"Processing entry {idx}/{len(entries)}", {"date": entry['date']})
                     result = retry(
                         f"Entry {entry['date']}",
                         lambda: upload_entry(page, entry, config),
